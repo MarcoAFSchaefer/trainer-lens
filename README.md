@@ -1,45 +1,63 @@
 # Trainer Lens
 
-Painéis de informação para Pokémon FireRed/LeafGreen no Gen1Recomp. Feitos para ficar nas docas do Trainer Desk, mas também abrem em janelas próprias sem ele.
+Information panels for Pokémon FireRed/LeafGreen on Gen1Recomp (mod API 3). With Trainer Desk installed, every panel sits in a dock around the game and redraws itself for the room it has; without it, up to five panels open as desktop windows.
 
-Só leem o jogo, com duas exceções explícitas: o painel Ferramentas usa itens e golpes de campo pelo próprio jogo quando você clica, e a Equipe troca a ordem dos Pokémon pela troca do jogo.
+Panels read the game. The only ones that change anything do so when you click, through the game's own functions: the Tools panel uses field moves and key items (and Auto Repel uses a Repel when one wears off), and the Party panel swaps two members.
 
-## Painéis
+## Panels
 
-- **Pokémon da área:** quem aparece no mapa, por método, nível e chance; capturados com Poké Ball; clique para a ficha da espécie.
-- **Equipe:** HP, nível, status e item; clique em dois para trocar de lugar.
-- **Oponente** e **Meu Pokémon:** ficha completa com teia de atributos, IV e EV (EV só no seu).
-- **Golpes:** tipo, categoria, poder, precisão, PP, descrição e efetividade contra o oponente.
-- **Radar de itens:** itens visíveis e ocultos do mapa.
-- **Ferramentas:** um clique para bicicleta, golpes de campo, varas, VS Seeker, repels e Escape Rope; Auto Repel opcional. Mostra só o que dá para usar agora.
-- **Treinador:** dinheiro, tempo, insígnias, Pokédex e contadores do save.
-- **Progresso:** espécies capturadas por área.
-- **Mapa da área** (tiles do jogo) e **Mapa da região** (Town Map do jogo).
-- **Pokédex:** grade navegável e ficha de cada espécie.
-- **Mochila**, **Day-Care**, **Contador** de encontros e **Avisos**.
-- **PC:** as caixas do PC e a ficha de cada Pokémon, só para ver.
+| Panel | What it shows |
+| --- | --- |
+| Area Pokémon | Wild Pokémon of the current map by method (grass, Surf, rods, rocks), level range and chance; caught species marked with a Poké Ball. Click a species for its sheet. |
+| Party | HP, level, gender, status and held item. Click one member, then another, to swap them. |
+| Opponent | The opponent's full sheet in battle: types, nature, ability, item, a radar chart of stats and IVs, moves. |
+| My Pokémon | The same sheet for your Pokémon, with EVs: the summary screen's Pokémon, the PC cursor's, the party menu's, the one in battle, or the party lead. |
+| Moves | Your Pokémon's moves with type, category, power, accuracy, PP, description, and effectiveness against the opponent in battle. |
+| Item radar | Visible and hidden items left on the map, nearest first. |
+| Tools | One click for the bicycle, field moves (Cut, Surf, Strength, Flash, Rock Smash, Waterfall, Dig, Teleport, Sweet Scent), rods, VS Seeker, Repels and Escape Rope. Only what can be used right now is shown. Auto Repel toggle. |
+| Trainer | Name, ID, money, play time, the eight badges, Pokédex counts and save counters. |
+| Progress | How many of each area's wild species are caught. |
+| Area map | The current map drawn with the game's own tiles, with you, trainers, other characters and items. |
+| Region map | The game's Town Map with your position. |
+| Pokédex | Every species in a grid; click one for its sheet (base stats, abilities, evolutions, where to find it). |
+| Bag | The five pockets, with item icons and descriptions. View only. |
+| Day-Care | The Four Island and Route 5 Day-Care boarders, their levels if taken back now, the cost, and a waiting egg. |
+| Counter | Wild encounters by species, encounters since the last shiny, and shinies seen. |
+| Notices | A short feed: a wild shiny, the VS Seeker charged, a Repel wearing off, a fainted party member, Day-Care news, and Trainer Pilot stopping. |
+| PC | The PC boxes as a grid; click a Pokémon for its full sheet. View only: nothing is moved, deposited or withdrawn. |
 
-Todos os painéis se redesenham no espaço que têm e seguem o tema do Trainer Desk.
+See [docs/PANELS.md](docs/PANELS.md) for where each panel reads its data.
 
-## Instalação
+## Installation
 
-Copie a pasta `trainer_lens` para a pasta de mods do jogo:
+Copy the `trainer_lens` folder into the game's mods folder:
 
 ```
 %APPDATA%\pokemon-love2d\mods\trainer_lens
 ```
 
-## Testes
+Trainer Desk is optional but recommended.
 
-Rodam no Linux com LÖVE 11.5 e um X virtual, junto com o Trainer Desk:
+## Options
 
-```
-DOCK_MOD=/caminho/trainer-desk/trainer_desk PP_MOD=$PWD/trainer_lens \
-  xvfb-run -a love tests
-```
+| Option | Default | What it does |
+| --- | --- | --- |
+| Panel placement | IDE (Trainer Desk) | Dock the panels in Trainer Desk, or open them as desktop windows. Without Trainer Desk, windows are used. |
+| Panel windows | 3 | How many desktop windows to open in window mode (0 to 5). |
+| Panel 1 to 5 | area, party, opponent, radar, my Pokémon | Which panel each desktop window shows. |
+| Opponent in battle | on | In window mode, panel 1 shows the opponent during a battle unless another window already does. |
+| Language | Português | Language of the panels (Português or English). |
+| Remember windows | on | Windows only: put the panel windows back where you left them. |
+| Remember game window | on | Windows only: also remember the main game window. |
+| Bring windows forward | on | Windows only: when the game gains focus, bring its other windows forward too. |
 
-O resultado esperado é `ALL DOCK CHECKS PASSED`.
+## Documentation
 
-## Histórico
+- [docs/PANELS.md](docs/PANELS.md): each panel and the game data behind it.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the files fit together, hooks and saved data.
+- [CHANGELOG.md](CHANGELOG.md): version history.
+- [tests/README.md](tests/README.md): running the automated checks.
 
-Até a versão 2.8.0 se chamava PokePanels (id `poke_panels`).
+## History
+
+Until version 2.8.0 this mod was called PokePanels (id `poke_panels`).

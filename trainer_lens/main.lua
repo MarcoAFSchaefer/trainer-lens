@@ -1,7 +1,15 @@
--- Trainer Lens: extra desktop windows for the native Gen 3 games.
--- Each panel is a view-only window (area Pokemon, team, opponent sheet). The
--- mod reads game state and never writes it. See windows.lua for how a panel
--- window is opened and wm_worker.lua for the Windows-only window keeper.
+-- Trainer Lens: information panels for the native Gen 3 games (FireRed/LeafGreen).
+--
+-- With Trainer Desk installed, every panel is docked around the game and drawn
+-- at the size its dock gives it; without it, up to five panels open as desktop
+-- windows (windows.lua, with the Windows-only window keeper in wm_worker.lua).
+--
+-- This file builds models from game state; ui.lua turns them into pictures.
+-- Panels only read the game, with three exceptions the player starts with a
+-- click: the Tools panel uses field moves and key items through the game's own
+-- functions (and Auto Repel uses a Repel when one wears off), and the Party
+-- panel swaps two members through the game's own reorder.
+-- See docs/ARCHITECTURE.md for a map of this file.
 return function(mod)
   local G = love.graphics
   local floor, max, min = math.floor, math.max, math.min
@@ -11,7 +19,7 @@ return function(mod)
 
   mod.options:define({
     { key = "placement", label = "PANEL PLACEMENT", type = "choice", default = "dock",
-      choices = { { "IDE (POKEDOCK)", "dock" }, { "OWN WINDOWS", "windows" } },
+      choices = { { "IDE (TRAINER DESK)", "dock" }, { "OWN WINDOWS", "windows" } },
       description = "IDE docks the panels inside the game window when the Trainer Desk mod is enabled. Own Windows opens each panel as a separate desktop window; it is also what happens when Trainer Desk is not there." },
     { key = "panels", label = "PANEL WINDOWS", type = "choice", default = 3,
       choices = { { "OFF", 0 }, { "1", 1 }, { "2", 2 }, { "3", 3 }, { "4", 4 }, { "5", 5 } },
@@ -143,7 +151,7 @@ return function(mod)
   end
 
   ---------------------------------------------------------------------------
-  -- Drawing (240x216 logical pixels, painted at 2x)
+  -- Drawing: views live in ui.lua and draw into whatever room they are given
   ---------------------------------------------------------------------------
   local W, H = 480, 432       -- a view's size when nobody says how much room it has
   local UI = load_("ui.lua", { T = T, typeLabel = typeLabel })
