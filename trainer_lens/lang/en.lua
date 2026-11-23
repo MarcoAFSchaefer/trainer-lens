@@ -12,7 +12,7 @@ return { OPPONENT = "OPPONENT", AREA = "AREA POKéMON", PARTY = "PARTY", WILD = 
       NATIONAL = "National", ITEMS = "Items", INSIDE = "Inside %s  ·  near %s", NO_MAP = "No map for this place",
       NO_REGION = "Walk on a route or a town to build the map",
       BACK = "Back", HERE_LIST = "In this area", BOX_EMPTY = "Empty box", NO_PC = "No Pokémon in the PC yet",
-      BOX_HINT = "Touch a Pokémon to see its sheet",
+      BOX_HINT = "Click for its sheet; drag to move it",
       DEX_SUMMARY = "Seen %d   Caught %d   of %d", ONLY_MISSING = "Only the missing", ALL = "All",
       HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "No notices yet",
       N_SHINY = "Wild SHINY!", N_SEEKER = "VS Seeker charged", N_REPEL = "The Repel wore off", N_EGG = "An egg is waiting at the Day-Care",
@@ -37,4 +37,5 @@ return { OPPONENT = "OPPONENT", AREA = "AREA POKéMON", PARTY = "PARTY", WILD = 
       BASE = "Base stats", ENTRY = "Pokédex entry", EVOLVES = "Evolves into", WHERE = "Where to find it",
       LV = "L",
       LOCK_BOX = "Lock box", UNLOCK_BOX = "Unlock box", SORT = "Sort", UNDO = "Undo", CANCEL = "Cancel", SORT_GO = "Sort", SORT_TITLE = "Sort the PC", SORT_NOTE = "Locked boxes stay as they are (%d locked). Living dex leaves a gap for each missing Pokémon. Eggs go last.", SORT_DEX_ALL = "Living dex, repeats side by side", SORT_DEX_SIMPLE = "Living dex, repeats at the end", SORT_SPECIES = "Species, then level", SORT_LV_UP = "Level, low to high", SORT_LV_DOWN = "Level, high to low", SORT_CONFIRM = "Sort %d Pokémon across %d boxes?", SORT_WARN = "Locked boxes are not touched. The new order is kept when you save the game; Undo puts it back while nothing else has moved.", SORT_DONE = "Sorted %d Pokémon", SORT_BUSY = "Close menus and finish the battle first", SORT_NONE = "No Pokémon in the unlocked boxes", ALL_LOCKED = "Every box is locked", UNDONE = "Order undone", UNDO_GONE = "The PC changed since: nothing undone",
-      SORT_COMPACT = "Remove gaps (keep the order)", SORT_NO_ROOM = "Not enough room: %d slots needed, %d in the unlocked boxes", DEX_NO = "No.%03d" }
+      SORT_COMPACT = "Remove gaps (keep the order)", SORT_NO_ROOM = "Not enough room: %d slots needed, %d in the unlocked boxes", DEX_NO = "No.%03d",
+      MOVE = "Move", MOVED = "Moved", MOVE_PICK = "Where should %s go? Click a slot (any box)" }

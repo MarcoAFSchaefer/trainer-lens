@@ -30,7 +30,9 @@ Every panel has an id of the form `trainer_lens.<kind>` in Trainer Desk. This pa
 - **My Pokémon** picks, in order: the summary screen's Pokémon (`src.ui.game3.summary_menu`), the PC cursor's (`src.ui.game3.box_storage_ui`), the party menu's cursor, the active battler, then the party lead.
 - **PC** reads `session.storage.boxes[b].mons[1..30]` directly, without `storage.ensure`. A boxed Pokémon without computed stats is shown through a copy with `pokemon.calcStats` filled in.
 
-## PC: locks and sorting
+## PC: moving, locks and sorting
+
+- **Move** (`moveMon`) swaps two box slots, in the same box or in two boxes, under the same rule as Sort (`pcFree`). Dragging is handled by `boxPointer`: a press on a Pokémon waits; letting go in place selects it, letting go over another slot of the box moves it. The party is never read or written.
 
 - **Locks** are kept in the `box_locks/v1` cache key, one line per save (`<trainer id>:<name>=1,4,7`). They only tell Sort which boxes to skip.
 - **Sort** (`runSort`) runs only when `WorldAPI:availableFieldActions()` gives no reason to refuse and no battle is active, which keeps it away from the PC screen, menus and scripts. It gathers the Pokémon of the unlocked boxes, orders them (`sortEntries`: eggs last, Pokédex number from `pokemon.national`, level, then the old order), lays them out (`placement`: the living dex orders keep an empty slot for every missing number up to the highest one; if that does not fit, nothing moves), and writes them back slot by slot. Only table references move between `mons` slots; no Pokémon is created, copied, healed or changed.

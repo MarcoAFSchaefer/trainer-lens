@@ -1354,12 +1354,15 @@ return function(mod)
     end
   end
 
-  -- PC boxes. Looking reads the save's storage directly, never through anything
-  -- that could create, move, deposit or withdraw. The one thing that writes is
-  -- Sort, which the player starts by hand: it rearranges the Pokémon of the
-  -- boxes that are not locked, moving only table references between slots (a
-  -- box holds mons[1..30], nil = empty), and keeps one step of undo.
-  local boxState = { box = nil, selected = nil, hits = {}, view = nil, flash = nil, undo = nil }
+  -- PC boxes. Looking reads the save's storage directly. Two things write, and
+  -- only when the player asks: Move (one Pokémon to another slot of any box,
+  -- swapping if it is taken) and Sort (the boxes that are not locked). Both
+  -- only move table references between box slots (a box holds mons[1..30],
+  -- nil = empty) and keep one step of undo. Nothing ever goes to or comes from
+  -- the party: no deposit, no withdraw, no release.
+  local boxState = { box = nil, selected = nil, hits = {}, view = nil, flash = nil, undo = nil,
+    held = nil,      -- { box, slot } while the player picks where a Pokémon goes
+    press = nil }    -- { x, y, slot } from a pointer press, for dragging inside a box
   local function boxView(mon)
     -- a boxed Pokémon may carry no computed stats: work them out to show, on a copy
     if tonumber(mon.maxHp) and tonumber(mon.attack) then return mon end
@@ -1562,6 +1565,24 @@ return function(mod)
     flash("UNDONE")
   end
 
+  -- Move one Pokémon to another box slot; a Pokémon already there takes its place.
+  local function moveMon(fromBox, fromSlot, toBox, toSlot)
+    if fromBox == toBox and fromSlot == toSlot then return end
+    local storage = game.session.storage
+    local from, to = storage.boxes[fromBox], storage.boxes[toBox]
+    if type(from) ~= "table" or type(to) ~= "table" or type(from.mons) ~= "table" or type(from.mons[fromSlot]) ~= "table" then return end
+    if fromSlot < 1 or fromSlot > 30 or toSlot < 1 or toSlot > 30 then return end
+    if not pcFree() then return flash("SORT_BUSY") end
+    to.mons = to.mons or {}
+    local involved = fromBox == toBox and { fromBox } or { fromBox, toBox }
+    local before = layoutOf(involved)
+    from.mons[fromSlot], to.mons[toSlot] = to.mons[toSlot], from.mons[fromSlot]
+    boxState.undo = { before = before, after = layoutOf(involved) }
+    -- stay on the box it went to, with the grid in view (and Undo at hand)
+    boxState.box, boxState.selected = toBox, nil
+    flash("MOVED")
+  end
+
   local function boxModel()
     local storage = game.session.storage
     if type(storage) ~= "table" or type(storage.boxes) ~= "table" or #storage.boxes == 0 then return nil end
@@ -1580,6 +1601,15 @@ return function(mod)
       name = nameCase(clean(tostring(box.name or ("BOX " .. boxState.box)))),
       locked = set[boxState.box] == true, lockedCount = lockedCount, canUndo = boxState.undo ~= nil,
       flash = boxState.flash and boxState.flash.text, view = boxState.view }
+    local held = boxState.held
+    if held then
+      local heldMon = storage.boxes[held.box] and storage.boxes[held.box].mons and storage.boxes[held.box].mons[held.slot]
+      if type(heldMon) ~= "table" then boxState.held, held = nil, nil
+      else
+        model.held = { here = held.box == boxState.box and held.slot or nil,
+          text = T("MOVE_PICK"):format(nameCase(try(h.P.name, try(h.P.speciesOf, heldMon)) or "?")) }
+      end
+    end
     if type(boxState.view) == "table" then
       local unlocked, entries = sortPlan(nil)
       model.confirm = { title = T(SORT_LABELS[boxState.view.order]),
@@ -1604,7 +1634,11 @@ return function(mod)
     local chosen = boxState.selected and mons[boxState.selected]
     if type(chosen) ~= "table" then boxState.selected = nil end
     model.selected = boxState.selected
-    if type(chosen) == "table" and not boxState.view then
+    model.canMove = type(chosen) == "table" and not held
+    if boxState.dragAt and boxState.press and boxState.press.box == boxState.box then
+      model.drag = { slot = boxState.press.slot, x = boxState.dragAt.x, y = boxState.dragAt.y }
+    end
+    if type(chosen) == "table" and not boxState.view and not held then
       local view = boxView(chosen)
       local pokemon = monBasics(view)
       if not pokemon.egg then
@@ -1636,9 +1670,48 @@ return function(mod)
           if order then runSort(order) end
         elseif hit.cancel then boxState.view = nil
         elseif hit.undo then undoSort()
-        elseif hit.slot then boxState.selected = boxState.selected ~= hit.slot and hit.slot or nil end
+        elseif hit.startMove then
+          if boxState.selected then boxState.held = { box = boxState.box, slot = boxState.selected } end
+        elseif hit.cancelMove then boxState.held = nil
+        elseif hit.slot and boxState.held then
+          local held = boxState.held
+          boxState.held = nil
+          if not (held.box == boxState.box and held.slot == hit.slot) then moveMon(held.box, held.slot, boxState.box, hit.slot) end
+        elseif hit.slot and not hit.empty then boxState.selected = boxState.selected ~= hit.slot and hit.slot or nil
+        elseif hit.slot then boxState.selected = nil end
         return
       end
+    end
+  end
+
+  -- Pointer: a click works like boxClick; pressing on a Pokémon and letting go
+  -- over another slot of the same box moves it there.
+  local function slotAt(x, y)
+    for _, hit in ipairs(boxState.hits) do
+      if hit.slot and x >= hit.x and x < hit.x + hit.w and y >= hit.y and y < hit.y + hit.h then return hit end
+    end
+  end
+  local function boxPointer(action, x, y)
+    if action == "down" then
+      -- on a Pokémon in the grid, wait: letting go in place selects it, dragging moves it
+      local hit = slotAt(x, y)
+      boxState.dragAt = nil
+      if hit and not hit.empty and not boxState.held then
+        boxState.press = { x = x, y = y, slot = hit.slot, box = boxState.box }
+        return
+      end
+      boxState.press = nil
+      return boxClick(x, y)
+    elseif action == "move" and boxState.press then
+      if math.abs(x - boxState.press.x) + math.abs(y - boxState.press.y) > 8 then boxState.dragAt = { x = x, y = y } end
+    elseif action == "up" and boxState.press then
+      local press, dragged = boxState.press, boxState.dragAt
+      boxState.press, boxState.dragAt = nil, nil
+      if not dragged then return boxClick(press.x, press.y) end
+      local hit = slotAt(x, y)
+      if hit and press.box == boxState.box and hit.slot ~= press.slot then moveMon(press.box, press.slot, press.box, hit.slot) end
+    elseif action == "cancel" then
+      boxState.press, boxState.dragAt = nil, nil
     end
   end
 
@@ -1844,6 +1917,12 @@ return function(mod)
     end
     return false
   end
+  mod.exports.debugBoxPointer = function(action, x, y) return boxPointer(action, x, y) end
+  mod.exports.debugBoxHit = function(field, value)
+    for _, hit in ipairs(boxState.hits) do
+      if hit[field] ~= nil and (value == nil or hit[field] == value) then return hit end
+    end
+  end
   mod.exports.debugPaint = function(kind, w, h)
     paint(kind, love.timer.getTime(), w, h)
   end
@@ -1892,7 +1971,7 @@ return function(mod)
           elseif action == "down" then pcall(dexClick, x, y) end
         end or kind == "box" and function(action, x, y, amount)
           if action == "wheel" then boxState.box, boxState.selected = (boxState.box or 1) + ((tonumber(amount) or 0) > 0 and -1 or 1), nil
-          elseif action == "down" then pcall(boxClick, x, y) end
+          else pcall(boxPointer, action, x, y) end
         end or kind == "counter" and function(action, x, y)
           if action == "down" then pcall(counterClick, x, y) end
         end or kind == "progress" and function(action, x, y, amount)

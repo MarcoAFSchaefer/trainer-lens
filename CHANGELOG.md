@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.0
+
+- PC panel: move Pokémon between box slots, by dragging inside a box or with **Move** to any slot of any box; a taken slot swaps. Never to or from the party. Same rules as sorting (field only, no menu or battle) and one step of **Undo**.
+
 ## 2.12.0
 
 - PC panel: the living dex orders leave an empty slot for each missing species (up to the highest Pokédex number you have); if the unlocked boxes are too small for that, nothing moves.

@@ -12,7 +12,7 @@ return { OPPONENT = "OPONENTE", AREA = "POKéMON DA ÁREA", PARTY = "EQUIPE", WI
       NATIONAL = "Nacional", ITEMS = "Itens", INSIDE = "Dentro de %s  ·  perto de %s", NO_MAP = "Sem mapa para este lugar",
       NO_REGION = "Ande por uma rota ou cidade para montar o mapa",
       BACK = "Voltar", HERE_LIST = "Nesta área", BOX_EMPTY = "Caixa vazia", NO_PC = "Nenhum Pokémon no PC ainda",
-      BOX_HINT = "Toque num Pokémon para ver a ficha",
+      BOX_HINT = "Clique para ver a ficha; arraste para mover",
       DEX_SUMMARY = "Vistos %d   Capturados %d   de %d", ONLY_MISSING = "Só os que faltam", ALL = "Todos",
       HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "Nenhum aviso ainda",
       N_SHINY = "SHINY selvagem!", N_SEEKER = "VS Seeker carregado", N_REPEL = "O Repel acabou", N_EGG = "Há um ovo no Day-Care",
@@ -40,4 +40,5 @@ return { OPPONENT = "OPONENTE", AREA = "POKéMON DA ÁREA", PARTY = "EQUIPE", WI
         GRASS = "PLANTA", ELECTRIC = "ELÉTRICO", PSYCHIC = "PSÍQUICO", ICE = "GELO", DRAGON = "DRAGÃO", DARK = "SOMBRIO" },
       LV = "Nv",
       LOCK_BOX = "Travar caixa", UNLOCK_BOX = "Destravar caixa", SORT = "Ordenar", UNDO = "Desfazer", CANCEL = "Cancelar", SORT_GO = "Ordenar", SORT_TITLE = "Ordenar o PC", SORT_NOTE = "Caixas travadas ficam como estão (%d travadas). A living dex deixa um espaço vazio para cada Pokémon que falta. Ovos vão para o fim.", SORT_DEX_ALL = "Living dex, repetidos lado a lado", SORT_DEX_SIMPLE = "Living dex, repetidos no final", SORT_SPECIES = "Espécie, depois nível", SORT_LV_UP = "Nível crescente", SORT_LV_DOWN = "Nível decrescente", SORT_CONFIRM = "Ordenar %d Pokémon em %d caixas?", SORT_WARN = "As caixas travadas não são mexidas. A nova ordem fica quando você salvar o jogo; Desfazer volta enquanto nada mais tiver mudado.", SORT_DONE = "%d Pokémon ordenados", SORT_BUSY = "Feche os menus e termine a batalha antes", SORT_NONE = "Nenhum Pokémon nas caixas destravadas", ALL_LOCKED = "Todas as caixas estão travadas", UNDONE = "Ordem desfeita", UNDO_GONE = "O PC mudou desde então: nada foi desfeito",
-      SORT_COMPACT = "Remover espaços (mantém a ordem)", SORT_NO_ROOM = "Não cabe: precisa de %d espaços e as caixas destravadas têm %d", DEX_NO = "Nº%03d" }
+      SORT_COMPACT = "Remover espaços (mantém a ordem)", SORT_NO_ROOM = "Não cabe: precisa de %d espaços e as caixas destravadas têm %d", DEX_NO = "Nº%03d",
+      MOVE = "Mover", MOVED = "Movido", MOVE_PICK = "Para onde vai %s? Clique num espaço (qualquer caixa)" }

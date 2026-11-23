@@ -12,7 +12,7 @@ return { OPPONENT = "あいて", AREA = "このエリアのポケモン", PARTY 
       NATIONAL = "全国", ITEMS = "どうぐ", INSIDE = "%sの中  ·  %sの近く", NO_MAP = "この場所の地図はありません",
       NO_REGION = "道路か町を歩くと地図ができます",
       BACK = "もどる", HERE_LIST = "このエリア", BOX_EMPTY = "空のボックス", NO_PC = "パソコンにポケモンはまだいません",
-      BOX_HINT = "ポケモンをタッチするとくわしく見られます",
+      BOX_HINT = "クリックでくわしく、ドラッグでいどう",
       DEX_SUMMARY = "みつけた %d   つかまえた %d   / %d", ONLY_MISSING = "まだのものだけ", ALL = "すべて",
       HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "お知らせはまだありません",
       N_SHINY = "やせいの色違い!", N_SEEKER = "バトルサーチャー充電完了", N_REPEL = "むしよけスプレーの効果が切れた", N_EGG = "育て屋にタマゴがある",
@@ -40,4 +40,5 @@ return { OPPONENT = "あいて", AREA = "このエリアのポケモン", PARTY 
         GRASS = "くさ", ELECTRIC = "でんき", PSYCHIC = "エスパー", ICE = "こおり", DRAGON = "ドラゴン", DARK = "あく" },
       LV = "Lv",
       LOCK_BOX = "ボックスをロック", UNLOCK_BOX = "ロックを解除", SORT = "並べかえ", UNDO = "元に戻す", CANCEL = "キャンセル", SORT_GO = "並べかえ", SORT_TITLE = "パソコンを並べかえ", SORT_NOTE = "ロックしたボックスはそのまま (%d個)。図鑑順はいないポケモンの所を空けます。タマゴは最後。", SORT_DEX_ALL = "図鑑順、同じポケモンは並べる", SORT_DEX_SIMPLE = "図鑑順、重複は最後に", SORT_SPECIES = "ポケモン順、次にレベル", SORT_LV_UP = "レベルの低い順", SORT_LV_DOWN = "レベルの高い順", SORT_CONFIRM = "%d匹を%d個のボックスで並べかえますか?", SORT_WARN = "ロックしたボックスは変わりません。新しい順番はセーブすると残ります。ほかに何も動かしていなければ元に戻せます。", SORT_DONE = "%d匹を並べかえました", SORT_BUSY = "メニューを閉じ、バトルを終えてください", SORT_NONE = "ロックしていないボックスにポケモンがいません", ALL_LOCKED = "すべてのボックスがロックされています", UNDONE = "元に戻しました", UNDO_GONE = "パソコンが変わったので戻せません",
-      SORT_COMPACT = "すきまをつめる (順番はそのまま)", SORT_NO_ROOM = "入りきりません: %dマス必要、ロックしていないボックスは%dマス", DEX_NO = "No.%03d" }
+      SORT_COMPACT = "すきまをつめる (順番はそのまま)", SORT_NO_ROOM = "入りきりません: %dマス必要、ロックしていないボックスは%dマス", DEX_NO = "No.%03d",
+      MOVE = "いどう", MOVED = "いどうしました", MOVE_PICK = "%sをどこに置く? マスをクリック (どのボックスでも)" }

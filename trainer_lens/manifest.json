@@ -1,7 +1,7 @@
 {
   "id": "trainer_lens",
   "name": "Trainer Lens",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "api": 3,
   "entry": "main.lua",
   "category": "UI",
@@ -21,6 +21,6 @@
     "engine_internals",
     "compute"
   ],
-  "description": "Information panels for FireRed and LeafGreen: area Pokemon, party, opponent and your Pokemon sheets (IVs, EVs, stats chart), moves, item radar, one-click field tools with Auto Repel, trainer card, progress, area and region maps, Pokedex, bag, Day-Care, encounter counter, notices and a PC viewer with box locks and sorting. Docks in Trainer Desk, or opens up to five desktop windows. English, Spanish, Portuguese and Japanese.",
+  "description": "Information panels for FireRed and LeafGreen: area Pokemon, party, opponent and your Pokemon sheets (IVs, EVs, stats chart), moves, item radar, one-click field tools with Auto Repel, trainer card, progress, area and region maps, Pokedex, bag, Day-Care, encounter counter, notices and a PC viewer with moving, box locks and sorting. Docks in Trainer Desk, or opens up to five desktop windows. English, Spanish, Portuguese and Japanese.",
   "github": "MarcoAFSchaefer/trainer-lens"
 }

@@ -650,6 +650,41 @@ end
       check(order():sub(1, 16) == "1:1:16L3 1:2:1L5", "level, low to high: " .. order())
       paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "species_level"); paintBox(); pp.exports.debugBoxPress("confirm")
       check(order():find("1:3:16L3 1:4:16L22 1:5:16L30", 1, true) ~= nil, "species, then level: " .. order())
+      -- Move: pick a Pokémon, Move, change box, drop it in an empty slot
+      local packed2 = order()
+      paintBox(); pp.exports.debugBoxPress("page", -1); paintBox(); pp.exports.debugBoxPress("page", -1)   -- box 3 -> box 1
+      paintBox(); pp.exports.debugBoxPress("slot", 1)            -- 1L5 in box 1 slot 1 (after species sort)
+      paintBox(); check(pp.exports.debugBoxPress("startMove"), "Move is offered for the chosen Pokémon")
+      battle.active = true
+      paintBox(); pp.exports.debugBoxPress("page", 1); paintBox(); pp.exports.debugBoxPress("slot", 7)
+      check(order() == packed2, "no moving during a battle")
+      battle.active = false
+      paintBox(); pp.exports.debugBoxPress("page", -1); paintBox(); pp.exports.debugBoxPress("slot", 1); paintBox(); pp.exports.debugBoxPress("startMove")
+      paintBox(); pp.exports.debugBoxPress("page", 1)          -- to box 2
+      local cm = paintBox(); local fm = io.open(OUT .. "/panels-box-move.png", "wb"); fm:write(cm:newImageData():encode("png"):getString()); fm:close()
+      pp.exports.debugBoxPress("slot", 7)
+      check(order():find("2:7:1L5", 1, true) ~= nil and order():find("1:1:", 1, true) == nil, "Move puts it in another box: " .. order())
+      paintBox(); check(pp.exports.debugBoxPress("undo"), "Undo is offered after a move")
+      check(order() == packed2, "Undo puts it back")
+      -- dropping on a taken slot swaps the two
+      paintBox(); pp.exports.debugBoxPress("page", -1); paintBox(); pp.exports.debugBoxPress("slot", 1); paintBox(); pp.exports.debugBoxPress("startMove")
+      paintBox(); pp.exports.debugBoxPress("slot", 2)
+      check(order():sub(1, 18) == "1:1:4L21 1:2:1L5 1", "a move onto a Pokémon swaps them: " .. order())
+      -- dragging inside a box
+      paintBox()
+      local from, to = pp.exports.debugBoxHit("slot", 3), pp.exports.debugBoxHit("slot", 12)
+      pp.exports.debugBoxPointer("down", from.x + 5, from.y + 5)
+      pp.exports.debugBoxPointer("move", from.x + 30, from.y + 40)
+      local cd = paintBox(); local fd = io.open(OUT .. "/panels-box-drag.png", "wb"); fd:write(cd:newImageData():encode("png"):getString()); fd:close()
+      pp.exports.debugBoxPointer("up", to.x + 5, to.y + 5)
+      check(order():find("1:12:16L3", 1, true) ~= nil, "dragging moves it to another slot: " .. order())
+      -- a click without dragging only selects
+      local before2 = order()
+      paintBox(); from = pp.exports.debugBoxHit("slot", 4)
+      pp.exports.debugBoxPointer("down", from.x + 5, from.y + 5); pp.exports.debugBoxPointer("up", from.x + 6, from.y + 6)
+      check(order() == before2, "a click is not a move")
+      -- back to box 3 for the tests below
+      paintBox(); pp.exports.debugBoxPress("page", 1); paintBox(); pp.exports.debugBoxPress("page", 1)
       -- something else moving after a sort ends the undo
       game.session.storage.boxes[2].mons[1] = mon(10, 40, { level = 2 })
       paintBox(); check(not pp.exports.debugBoxPress("undo"), "no Undo once the PC changed")

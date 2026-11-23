@@ -1241,18 +1241,23 @@ return function(env)
     return bw
   end
 
-  -- Returns the places that can be clicked: { page }, { back }, { slot }, { lock },
-  -- { openSort }, { sort = id }, { confirm }, { cancel }, { undo }.
+  -- Returns the places that can be clicked: { page }, { back }, { slot [, empty] },
+  -- { lock }, { openSort }, { sort = id }, { confirm }, { cancel }, { undo },
+  -- { startMove }, { cancelMove }.
   function UI.box(model, w, h)
     background(w, h)
     local pad, gap = 8, 4
     local hits = {}
     local detail = model.detail
     local wide = w >= 620
-    if detail and not wide then
+    if detail and not wide and not model.held then
       -- narrow: the sheet takes the panel, with a way back to the box
       local bw = chip("<  " .. model.name, pad, pad, false)
       hits[#hits + 1] = { x = pad, y = pad, w = bw, h = 22, back = true }
+      if model.canMove then
+        local mw = widthOf(T("MOVE"), 11) + 18
+        footButton(T("MOVE"), w - pad - mw, pad, nil, hits, { startMove = true })
+      end
       G.push()
       G.translate(0, 32)
       UI.sheet(detail, w, h - 32, detail.kindLabel)
@@ -1303,17 +1308,20 @@ return function(env)
       local x = ox + ((slot - 1) % 6) * (cell + gap)
       local y = top + floor((slot - 1) / 6) * (cell + gap)
       local entry = model.slots[slot]
-      local chosen = model.selected == slot
+      local chosen = model.selected == slot or (model.held and model.held.here == slot)
       local tone = entry and (chosen and mix(C.card, C.accent, 0.3) or C.card) or mix(C.card, C.bg, 0.55)
       if model.locked then tone = mix(tone, C.gold, 0.08) end
+      if model.held and not chosen then tone = mix(tone, C.accent, 0.06) end
       card(x, y, cell, cell, tone, 6)
-      if entry then
+      local lifted = model.drag and model.drag.slot == slot
+      if entry and not lifted then
         sprite(entry.pic, x + 2, y + 2, cell - 4)
         if entry.shiny then star(x + cell - 7, y + 7, min(6, cell / 7)) end
         if cell >= 40 and entry.level then text(entry.level, x + cell - 4, y + cell - 14, C.muted, 10, "right") end
         if cell >= 40 and entry.number then text(entry.number, x + 4, y + 3, C.faint, 9) end
-        hits[#hits + 1] = { x = x, y = y, w = cell, h = cell, slot = slot }
       end
+      -- every slot can be clicked: an empty one is where a held Pokémon can go
+      hits[#hits + 1] = { x = x, y = y, w = cell, h = cell, slot = slot, empty = entry == nil or nil }
       if chosen then
         color(C.accent)
         G.setLineWidth(2)
@@ -1321,17 +1329,29 @@ return function(env)
         G.setLineWidth(1)
       end
     end
-    if model.count == 0 then text(T("BOX_EMPTY"), gw / 2, top + cell * 2.5, C.faint, 12, "center") end
+    if model.count == 0 and not model.held then text(T("BOX_EMPTY"), gw / 2, top + cell * 2.5, C.faint, 12, "center") end
+    if model.drag then
+      -- the Pokémon being dragged follows the pointer
+      local entry = model.slots[model.drag.slot]
+      if entry then sprite(entry.pic, model.drag.x - cell / 2, model.drag.y - cell / 2, cell - 4) end
+    end
 
-    -- footer: lock, sort, undo, and what just happened
+    -- footer: while holding, where to put it; otherwise lock, sort, move, undo
     local fy, fx = bottom + 4, pad
-    fx = fx + footButton(model.locked and T("UNLOCK_BOX") or T("LOCK_BOX"), fx, fy, model.locked and mix(C.raised, C.gold, 0.35) or nil, hits, { lock = true }) + 6
-    fx = fx + footButton(T("SORT"), fx, fy, nil, hits, { openSort = true }) + 6
-    if model.canUndo then fx = fx + footButton(T("UNDO"), fx, fy, nil, hits, { undo = true }) + 6 end
-    local message = model.flash or (not detail and model.count > 0 and T("BOX_HINT")) or nil
+    local message
+    if model.held then
+      fx = fx + footButton(T("CANCEL"), fx, fy, nil, hits, { cancelMove = true }) + 6
+      message = model.held.text
+    else
+      fx = fx + footButton(model.locked and T("UNLOCK_BOX") or T("LOCK_BOX"), fx, fy, model.locked and mix(C.raised, C.gold, 0.35) or nil, hits, { lock = true }) + 6
+      fx = fx + footButton(T("SORT"), fx, fy, nil, hits, { openSort = true }) + 6
+      if model.canMove then fx = fx + footButton(T("MOVE"), fx, fy, nil, hits, { startMove = true }) + 6 end
+      if model.canUndo then fx = fx + footButton(T("UNDO"), fx, fy, nil, hits, { undo = true }) + 6 end
+      message = model.flash or (not detail and model.count > 0 and T("BOX_HINT")) or nil
+    end
     if message and gw - fx - pad > 40 then text(fit(message, gw - fx - pad, 11), fx + 4, fy + 4, model.flash and C.text or C.faint, 11) end
 
-    if detail and wide then
+    if detail and wide and not model.held then
       -- wide: the sheet beside the box
       G.push()
       G.translate(gw, 0)

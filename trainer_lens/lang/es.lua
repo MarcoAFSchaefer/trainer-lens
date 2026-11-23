@@ -12,7 +12,7 @@ return { OPPONENT = "RIVAL", AREA = "POKéMON DE LA ZONA", PARTY = "EQUIPO", WIL
       NATIONAL = "Nacional", ITEMS = "Objetos", INSIDE = "Dentro de %s  ·  cerca de %s", NO_MAP = "No hay mapa de este lugar",
       NO_REGION = "Camina por una ruta o una ciudad para dibujar el mapa",
       BACK = "Volver", HERE_LIST = "En esta zona", BOX_EMPTY = "Caja vacía", NO_PC = "Aún no hay Pokémon en el PC",
-      BOX_HINT = "Toca un Pokémon para ver su ficha",
+      BOX_HINT = "Haz clic para ver su ficha; arrastra para moverlo",
       DEX_SUMMARY = "Vistos %d   Capturados %d   de %d", ONLY_MISSING = "Solo los que faltan", ALL = "Todos",
       HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "Aún no hay avisos",
       N_SHINY = "¡SHINY salvaje!", N_SEEKER = "Buscapelea cargado", N_REPEL = "El Repelente se acabó", N_EGG = "Hay un huevo en la Guardería",
@@ -40,4 +40,5 @@ return { OPPONENT = "RIVAL", AREA = "POKéMON DE LA ZONA", PARTY = "EQUIPO", WIL
         GRASS = "PLANTA", ELECTRIC = "ELÉCTRICO", PSYCHIC = "PSÍQUICO", ICE = "HIELO", DRAGON = "DRAGÓN", DARK = "SINIESTRO" },
       LV = "Nv",
       LOCK_BOX = "Bloquear caja", UNLOCK_BOX = "Desbloquear caja", SORT = "Ordenar", UNDO = "Deshacer", CANCEL = "Cancelar", SORT_GO = "Ordenar", SORT_TITLE = "Ordenar el PC", SORT_NOTE = "Las cajas bloqueadas se quedan como están (%d bloqueadas). La living dex deja un hueco por cada Pokémon que falta. Los huevos van al final.", SORT_DEX_ALL = "Living dex, repetidos juntos", SORT_DEX_SIMPLE = "Living dex, repetidos al final", SORT_SPECIES = "Especie, luego nivel", SORT_LV_UP = "Nivel ascendente", SORT_LV_DOWN = "Nivel descendente", SORT_CONFIRM = "¿Ordenar %d Pokémon en %d cajas?", SORT_WARN = "Las cajas bloqueadas no se tocan. El nuevo orden se conserva al guardar la partida; Deshacer lo revierte mientras no cambie nada más.", SORT_DONE = "%d Pokémon ordenados", SORT_BUSY = "Cierra los menús y termina el combate antes", SORT_NONE = "No hay Pokémon en las cajas desbloqueadas", ALL_LOCKED = "Todas las cajas están bloqueadas", UNDONE = "Orden deshecho", UNDO_GONE = "El PC ha cambiado: no se deshizo nada",
-      SORT_COMPACT = "Quitar huecos (mantiene el orden)", SORT_NO_ROOM = "No cabe: hacen falta %d espacios y las cajas desbloqueadas tienen %d", DEX_NO = "N.º%03d" }
+      SORT_COMPACT = "Quitar huecos (mantiene el orden)", SORT_NO_ROOM = "No cabe: hacen falta %d espacios y las cajas desbloqueadas tienen %d", DEX_NO = "N.º%03d",
+      MOVE = "Mover", MOVED = "Movido", MOVE_PICK = "¿Adónde va %s? Haz clic en un hueco (cualquier caja)" }

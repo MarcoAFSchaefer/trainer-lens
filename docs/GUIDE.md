@@ -1,6 +1,6 @@
 # Trainer Lens: player guide
 
-Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with a few exceptions that act only when you click: **Tools** (and its **Auto Repel**), swapping two **Party** members, and sorting the **PC**.
+Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with a few exceptions that act only when you click: **Tools** (and its **Auto Repel**), swapping two **Party** members, and moving or sorting Pokémon in the **PC**.
 
 ## Installing
 
@@ -66,6 +66,13 @@ A short feed of things worth knowing: a wild shiny, the VS Seeker fully charged,
 
 ### PC
 Your PC boxes as a grid. Use **<** **>** or the mouse wheel to change box, and click a Pokémon to see its full sheet, with IVs and EVs.
+
+**Moving a Pokémon:**
+
+- **Drag** it to another slot of the same box. On a taken slot, the two swap places.
+- To put it in **another box**, click it, then **Move**, change box with **<** **>** or the wheel, and click the slot where it goes (empty, or taken to swap). **Cancel** leaves it where it was.
+
+Moving works between box slots only: nothing goes to or comes from your party, so there is no deposit or withdraw. Like sorting, it only works in the field with no menu open and no battle, and **Undo** puts the last move back.
 
 **Lock box** (or the padlock before the box name) marks a box that sorting must leave alone, such as your legendaries or a box arranged by hand. The lock is only for Trainer Lens: in the game you can still do anything with that box. Locks are kept per save.
 
