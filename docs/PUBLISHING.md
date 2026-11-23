@@ -32,6 +32,8 @@ After the first listing, new versions need no pull request: the index reads the 
 - `load`/`loadstring`: used to load the mod's own files (`i18n.lua`, `lang/*.lua`, `panel.lua`, `ui.lua`). Reported for review, not blocking.
 - Trainer Lens only: `wm_worker.lua` requires `ffi` and `love.timer`. It runs in its own thread (the `compute` permission), so as a `*_worker.lua` file it is reported, not blocking.
 
+- Trainer Lens only: the engine's `modkit.py validate` reports MK301 for `data/generated/gba/trainer_card/badges.rgba` in `main.lua`. The badge pictures are read from the player's own ROM cache, through the game's cache layer and the same two paths the game's trainer card uses; without the second one the badges do not show. Nothing from the ROM is shipped.
+
 ## Before each release
 
 - Run the tests in every language (`TEST_LANG=en|es|pt|ja`, see tests/README.md).

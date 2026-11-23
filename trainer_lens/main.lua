@@ -701,10 +701,13 @@ return function(mod)
     badgePics = false
     pcall(function()
       local CacheFs = require("src.import.CacheFs")
-      -- read through the game's cache layer, never by path into the cache folder
-      local path = "trainer_card/badges.rgba"
-      local raw = (CacheFs.readActive and CacheFs.readActive(path)) or (CacheFs.read and CacheFs.read(path))
-      if raw and #raw < 128 * 16 * 4 then raw = nil end
+      -- the same two places the game's own trainer card reads them from
+      -- (src/ui/game3/trainer_card.lua): the version's cache root, then its gba tree
+      local raw
+      for _, path in ipairs({ "trainer_card/badges.rgba", "data/generated/gba/trainer_card/badges.rgba" }) do
+        raw = raw or (CacheFs.readActive and CacheFs.readActive(path)) or (CacheFs.read and CacheFs.read(path))
+        if raw and #raw < 128 * 16 * 4 then raw = nil end
+      end
       if not raw then return end
       local image = G.newImage(love.image.newImageData(128, 16, "rgba8", raw))
       image:setFilter("nearest", "nearest")

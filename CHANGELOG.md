@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.1
+
+- Trainer panel: the badge pictures show again (2.10.0 had dropped the second place the game keeps them).
+
 ## 2.14.0
 
 - New **Dashboard** panel: while exploring, the area's Pokémon, Repel steps, VS Seeker charge, a waiting egg, encounters since the last shiny and the items left; in a battle, the opponent, and in a wild battle the exact Gen 3 chance of catching it with each ball you carry.
