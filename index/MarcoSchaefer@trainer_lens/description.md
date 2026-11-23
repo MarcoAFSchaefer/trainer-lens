@@ -16,4 +16,4 @@ With **Trainer Desk** the panels dock around the game and redraw themselves for 
 
 Panels in English, Spanish, Portuguese and Japanese. Names that come from the game stay in your game's language.
 
-Tested on FireRed; LeafGreen shares the same engine paths but has not been played with it yet.
+Tested on FireRed and LeafGreen with Gen1Recomp 0.4.8.
