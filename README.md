@@ -2,14 +2,15 @@
 
 Information panels for Pokémon FireRed/LeafGreen on Gen1Recomp (mod API 3). With Trainer Desk installed, every panel sits in a dock around the game and redraws itself for the room it has; without it, up to five panels open as desktop windows.
 
-Panels read the game. The only ones that change anything do so when you click, through the game's own functions: the Tools panel uses field moves and key items (and Auto Repel uses a Repel when one wears off), the Party panel swaps two members, and the PC panel moves Pokémon between box slots and sorts the boxes you have not locked.
+Panels read the game. The only ones that change anything do so when you click, through the game's own functions: the Tools panel uses field moves and key items (and Auto Repel uses a Repel when one wears off), the Party panel swaps two members and gives or takes held items, and the PC panel moves Pokémon between box slots and sorts the boxes you have not locked.
 
 ## Panels
 
 | Panel | What it shows |
 | --- | --- |
+| Dashboard | One panel that follows you: while exploring, the area's Pokémon (caught or not, chance, levels), the Repel steps, VS Seeker charge, a waiting egg, encounters since the last shiny and the items left; in a battle, the opponent, and in a wild battle the exact catch chance of each ball you carry. |
 | Area Pokémon | Wild Pokémon of the current map by method (grass, Surf, rods, rocks), level range and chance; caught species marked with a Poké Ball. Click a species for its sheet. |
-| Party | HP, level, gender, status and held item. Click one member, then another, to swap them. |
+| Party | HP, level, gender, status and held item. Click one member, then another, to swap them. Click the held item (or the picture, on small cards) to give, take or switch items from the bag. |
 | Opponent | The opponent's full sheet in battle: types, nature, ability, item, a radar chart of stats and IVs, moves. |
 | My Pokémon | The same sheet for your Pokémon, with EVs: the summary screen's Pokémon, the PC cursor's, the party menu's, the one in battle, or the party lead. |
 | Moves | Your Pokémon's moves with type, category, power, accuracy, PP, description, and effectiveness against the opponent in battle. |

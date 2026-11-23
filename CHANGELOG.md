@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.14.0
+
+- New **Dashboard** panel: while exploring, the area's Pokémon, Repel steps, VS Seeker charge, a waiting egg, encounters since the last shiny and the items left; in a battle, the opponent, and in a wild battle the exact Gen 3 chance of catching it with each ball you carry.
+- Party panel: give, take and switch held items from the bag, through the game's own functions (field only; Mail is left to the game).
+
 ## 2.13.0
 
 - PC panel: move Pokémon between box slots, by dragging inside a box or with **Move** to any slot of any box; a taken slot swaps. Never to or from the party. Same rules as sorting (field only, no menu or battle) and one step of **Undo**.

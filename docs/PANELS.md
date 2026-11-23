@@ -4,6 +4,7 @@ Every panel has an id of the form `trainer_lens.<kind>` in Trainer Desk. This pa
 
 | Kind | Title | Model | View |
 | --- | --- | --- | --- |
+| `dash` | Dashboard | `dashModel` (`dashField`, `dashBattle`) | `UI.dash` |
 | `wild` | Area Pokémon | `wildModel`, `wildDetail` | `UI.wild`, `UI.dex` |
 | `party` | Party | `partyModel` | `UI.party` |
 | `enemy` | Opponent | `enemyModel` | `UI.sheet` |
@@ -21,6 +22,15 @@ Every panel has an id of the form `trainer_lens.<kind>` in Trainer Desk. This pa
 | `counter` | Counter | `counterModel` | `UI.counter` |
 | `notices` | Notices | `notices` (filled by `noticeWatch`) | `UI.notices` |
 | `box` | PC | `boxModel` | `UI.box` |
+
+## Dashboard
+
+- **Exploring** (`dashField`): the area list of `wildModel`, `repelLeft()`, `vs_seeker.getBattery`, `daycare.isEggPending`, the encounter counter, and the Item radar's counts and nearest item.
+- **Battle** (`dashBattle`): the opponent as the Opponent panel picks it. In a wild battle, each ball in the `POKE_BALLS` pocket (or the Safari Ball, `safari.balls`) gets `battle.catching.catchOdds(ball, battler, state, session)`, the game's own odds `a` (catch rate, HP, status, ball bonus). The chance shown is the Gen 3 one: four shake checks, each passing with probability `b / 65536`, where `b = floor(1048560 / sqrt(sqrt(16711680 / a)))`; `a >= 255` is certain.
+
+## Party: held items
+
+`partyItemModel` lists what the member holds and the bag's `ITEMS`, `POKE_BALLS` and `BERRY_POUCH` rows, without Mail (`mail.isMailItem`). Giving calls `item_use.giveToMon(session, bag, id, slot, item_use.partyGiveSource(bag))`, which also switches when something is held; taking calls `item_use.takeFromMon`. Both only when the field is idle (`fieldIdle`), and never for Mail.
 
 ## Pokémon sheets (Opponent, My Pokémon, PC)
 

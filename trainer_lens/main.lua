@@ -25,15 +25,15 @@ return function(mod)
       choices = { { "OFF", 0 }, { "1", 1 }, { "2", 2 }, { "3", 3 }, { "4", 4 }, { "5", 5 } },
       description = "How many panel windows to open. Each one can be moved and resized. A window you close reopens when you change this." },
     { key = "panel_1", label = "PANEL 1", type = "choice", default = "wild",
-      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
+      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" }, { "DASHBOARD", "dash" } } },
     { key = "panel_2", label = "PANEL 2", type = "choice", default = "party",
-      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
+      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" }, { "DASHBOARD", "dash" } } },
     { key = "panel_3", label = "PANEL 3", type = "choice", default = "enemy",
-      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
+      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" }, { "DASHBOARD", "dash" } } },
     { key = "panel_4", label = "PANEL 4", type = "choice", default = "radar",
-      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
+      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" }, { "DASHBOARD", "dash" } } },
     { key = "panel_5", label = "PANEL 5", type = "choice", default = "ally",
-      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
+      choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" }, { "DASHBOARD", "dash" } } },
     { key = "battle_sheet", label = "OPPONENT IN BATTLE", type = "toggle", default = true,
       description = "In battle, panel 1 shows the opponent unless another panel already does." },
     { key = "language", label = "LANGUAGE", type = "choice", default = "en",
@@ -130,17 +130,26 @@ return function(mod)
     return out
   end
 
+  local partyState = { hits = {}, selected = nil, itemFor = nil, page = 1, fits = 8, flash = nil }
+  local partyItemModel   -- the item view of one party member (defined with the bag code below)
   local function partyModel()
+    if partyState.itemFor then
+      local view = partyItemModel and partyItemModel(partyState.itemFor)
+      if view then return { itemView = view } end
+      partyState.itemFor = nil
+    end
     local h, rows = host(), {}
     for index, mon in ipairs(game.session.party or {}) do
       local row = monBasics(mon)
       row.levelText, row.hpText = T("LV") .. row.level, row.hp .. "/" .. row.maxHp
       row.pic = try(h.P.monIcon, mon)
+      row.giveLabel = not row.egg and T("GIVE_ITEM") or nil
       rows[index] = row
     end
-    return { rows = rows }
+    local now = love.timer.getTime()
+    if partyState.flash and now - partyState.flash.at > 6 then partyState.flash = nil end
+    return { rows = rows, flash = partyState.flash and partyState.flash.text }
   end
-  local partyState = { hits = {}, selected = nil }
 
   local NATURE_SLOT = { ATK = 0, DEF = 1, SPE = 2, SPA = 3, SPD = 4 }
   local STAT_ROWS = { { "HP", "maxHp", "hp" }, { "ATK", "attack", "atk" }, { "DEF", "defense", "def" },
@@ -504,9 +513,9 @@ return function(mod)
   -- Panels and their windows
   ---------------------------------------------------------------------------
   local Windows = load_("windows.lua", mod)
-  local KINDS = { wild = true, party = true, enemy = true, radar = true, ally = true }
+  local KINDS = { wild = true, party = true, enemy = true, radar = true, ally = true, dash = true }
   local DEFAULTS = { "wild", "party", "enemy", "radar", "ally" }
-  local HEADINGS = { enemy = "OPPONENT", party = "PARTY", wild = "AREA", radar = "RADAR", ally = "ALLY" }
+  local HEADINGS = { enemy = "OPPONENT", party = "PARTY", wild = "AREA", radar = "RADAR", ally = "ALLY", dash = "DASH" }
   local canvases, logged = {}, {}
   local nextPaint, paintKey, suspended, windowSignature = 0, nil, false, nil
 
@@ -551,6 +560,7 @@ return function(mod)
       h.ItemUse, h.VsSeeker, h.Message = opt("src.core.game3.item_use"), opt("src.core.game3.vs_seeker"), opt("src.ui.game3.message")
       h.Player = opt("src.core.game3.player")
       h.BagChrome = opt("src.ui.game3.bag_chrome")
+      h.Mail, h.Catching = opt("src.core.game3.mail"), opt("src.core.game3.battle.catching")
       h.toolsReady = h.World ~= nil and h.Bag ~= nil and h.ItemUse ~= nil
     end
     return h
@@ -562,6 +572,16 @@ return function(mod)
     if type(n) == "table" then n = n.qty or n.quantity or n.count end
     if tonumber(n) then return tonumber(n) end
     return try(h.Bag.has, bag, id, 1) == true and 1 or 0
+  end
+  -- In the field with nothing else going on: no battle, menu, script or message.
+  -- Whatever changes the save from a panel (held items, the PC) waits for this.
+  local function fieldIdle()
+    local h = toolHost()
+    if not h.toolsReady then return false end
+    if try(h.Battle.isActive) == true then return false end
+    toolState.world = toolState.world or h.World.new(game, "trainer_lens")
+    local list, why = try(toolState.world.availableFieldActions, toolState.world)
+    return type(list) == "table" and why == nil
   end
   local function itemLabel(h, id)
     local label = try(h.Items.displayName, id)
@@ -1084,6 +1104,82 @@ return function(mod)
     end
   end
 
+  ---------------------------------------------------------------------------
+  -- Held items of the party: give, take or switch, through the game's own
+  -- party-menu functions (item_use.giveToMon / takeFromMon), so the bag and
+  -- the Pokémon change exactly as they would from the game's menu.
+  ---------------------------------------------------------------------------
+  local HOLD_POCKETS = { "ITEMS", "POKE_BALLS", "BERRY_POUCH" }
+  local function heldOf(mon)
+    local id = mon and (mon.heldItem or mon.item)
+    if id == nil or id == 0 or id == "" or id == "NONE" then return nil end
+    return id
+  end
+  local function isMail(h, id)
+    local num = try(h.Items.toNumericId, id) or tonumber(id)
+    return h.Mail and h.Mail.isMailItem and num and try(h.Mail.isMailItem, num) == true or false
+  end
+  local function partyFlash(key, ...)
+    partyState.flash = { text = select("#", ...) > 0 and T(key):format(...) or T(key), at = love.timer.getTime() }
+  end
+  function partyItemModel(slot)
+    local h = toolHost()
+    local mon = game.session.party and game.session.party[slot]
+    if type(mon) ~= "table" or not h.toolsReady then return nil end
+    local basics = monBasics(mon)
+    if basics.egg then return nil end
+    local held = heldOf(mon)
+    local model = { title = T("ITEM_OF"):format(basics.name), pic = try(h.P.monIcon, mon), rows = {}, page = 1, pages = 1,
+      flash = partyState.flash and partyState.flash.text }
+    if held then
+      model.held = { name = nameCase(try(h.Items.displayName, held) or "?"), pic = itemPic(h, held),
+        description = clean(try(h.Items.description, held) or ""), mail = isMail(h, held) }
+    end
+    local bag = game.session.bag
+    for _, pocket in ipairs(HOLD_POCKETS) do
+      for _, row in ipairs(bag and try(h.Bag.listPocket, bag, pocket) or {}) do
+        if (tonumber(row.qty) or 0) > 0 and not isMail(h, row.id) then
+          model.rows[#model.rows + 1] = { id = row.id, qty = row.qty, name = nameCase(clean(row.name or "?")), pic = itemPic(h, row.id) }
+        end
+      end
+    end
+    model.pages = max(1, math.ceil(#model.rows / max(1, partyState.fits)))
+    partyState.page = max(1, min(model.pages, partyState.page))
+    model.page = partyState.page
+    return model
+  end
+  local function giveItem(slot, id)
+    local h = toolHost()
+    local mon = game.session.party and game.session.party[slot]
+    if type(mon) ~= "table" then return end
+    if not fieldIdle() then return partyFlash("SORT_BUSY") end
+    local held = heldOf(mon)
+    if held and isMail(h, held) then return partyFlash("MAIL_HELD") end
+    local name = monBasics(mon).name
+    local itemName = nameCase(try(h.Items.displayName, id) or "?")
+    local bag = game.session.bag
+    local ok, reason = try(h.ItemUse.giveToMon, game.session, bag, id, slot, h.ItemUse.partyGiveSource and h.ItemUse.partyGiveSource(bag) or nil)
+    if ok and held then partyFlash("ITEM_SWITCHED", name, itemName, nameCase(try(h.Items.displayName, held) or "?"))
+    elseif ok then partyFlash("ITEM_GIVEN", name, itemName)
+    elseif reason == "bag_full" then partyFlash("BAG_FULL")
+    elseif reason == "cant_hold" then partyFlash("CANT_HOLD", itemName)
+    elseif reason == "mail" then partyFlash("MAIL_HELD")
+    else partyFlash("NOT_DONE") end
+  end
+  local function takeItem(slot)
+    local h = toolHost()
+    local mon = game.session.party and game.session.party[slot]
+    local held = heldOf(mon)
+    if not held then return end
+    if not fieldIdle() then return partyFlash("SORT_BUSY") end
+    if isMail(h, held) then return partyFlash("MAIL_HELD") end
+    local itemName = nameCase(try(h.Items.displayName, held) or "?")
+    local ok, reason = try(h.ItemUse.takeFromMon, game.session, game.session.bag, slot)
+    if ok then partyFlash("ITEM_TAKEN", itemName)
+    elseif reason == "bag_full" then partyFlash("BAG_FULL")
+    else partyFlash("NOT_DONE") end
+  end
+
   local function movesModel()
     local h = host()
     local mon = allyTarget()
@@ -1220,6 +1316,12 @@ return function(mod)
   local function partyClick(x, y)
     for _, hit in ipairs(partyState.hits) do
       if x >= hit.x and x < hit.x + hit.w and y >= hit.y and y < hit.y + hit.h then
+        -- the item view of one member
+        if hit.itemSlot then partyState.itemFor, partyState.page, partyState.selected = hit.itemSlot, 1, nil return end
+        if hit.back then partyState.itemFor = nil return end
+        if hit.page then partyState.page = max(1, partyState.page + hit.page) return end
+        if hit.take then takeItem(partyState.itemFor) return end
+        if hit.give then giveItem(partyState.itemFor, hit.give) return end
         local from = partyState.selected
         if not from then partyState.selected = hit.slot return end
         partyState.selected = nil
@@ -1442,14 +1544,7 @@ return function(mod)
   end
 
   -- Sorting changes the save, so only in the field with no menu, script or battle.
-  local function pcFree()
-    local h = toolHost()
-    if not h.toolsReady then return false end
-    if try(h.Battle.isActive) == true then return false end
-    toolState.world = toolState.world or h.World.new(game, "trainer_lens")
-    local list, why = try(toolState.world.availableFieldActions, toolState.world)
-    return type(list) == "table" and why == nil
-  end
+  local pcFree = fieldIdle
 
   local function sortPlan(order)
     local storage, h = game.session.storage, host()
@@ -1715,6 +1810,121 @@ return function(mod)
     end
   end
 
+  ---------------------------------------------------------------------------
+  -- Dashboard: one panel that follows what you are doing. In the field it
+  -- shows the area's Pokémon, the walk's state and the items left; in a battle,
+  -- the opponent, and in a wild battle the chance each ball you carry has.
+  ---------------------------------------------------------------------------
+  -- Gen 3 catch: odds 'a' (0..255) from the game's own formula
+  -- (battle/catching.lua catchOdds), then four shake checks, each passing
+  -- when a roll of 0..65535 is below b = 1048560 / sqrt(sqrt(16711680 / a)).
+  local function catchChance(odds)
+    odds = tonumber(odds) or 0
+    if odds >= 255 then return 1 end
+    if odds <= 0 then return 0 end
+    local b = floor(1048560 / math.sqrt(math.sqrt(16711680 / odds)))
+    return (min(65536, b) / 65536) ^ 4
+  end
+  local SAFARI_BALL = 5
+  local function dashBattle(h, th)
+    local st = try(h.Battle.getState)
+    if not st then return nil end
+    local battler, key = st.enemy, "enemy"
+    if st.double and type(st.battlers) == "table" then
+      for _, id in ipairs({ 1, 3 }) do
+        local candidate = st.battlers[id]
+        if candidate and candidate.mon and not (st.absent and st.absent[id]) and (tonumber(candidate.mon.hp) or 0) > 0 then
+          battler, key = candidate, id
+          break
+        end
+      end
+    end
+    if not (battler and battler.mon) then return nil end
+    local shown = h.Anim and try(h.Anim.shownBattler, key, battler) or battler
+    local mon = shown and shown.mon or battler.mon
+    local foe = monBasics(mon)
+    if h.Anim then
+      local _, hp, maxHp = try(h.Anim.displayHpRatio, key, shown)
+      if tonumber(hp) and tonumber(maxHp) then foe.hp, foe.maxHp = max(0, floor(hp)), max(1, floor(maxHp)) end
+    end
+    local types = try(h.P.types, foe.species) or {}
+    foe.type, foe.type2 = h.typeName[types[1]], h.typeName[types[2]]
+    if foe.type2 == foe.type then foe.type2 = nil end
+    foe.pic = try(h.P.frontPic, try(h.P.monPicSpecies, mon) or foe.species, nil, foe.shiny, mon.personality) or try(h.P.monIcon, mon)
+    foe.caught = try(h.Dex.isCaught, game.session.dex, foe.species) == true
+    foe.levelText = T("LV") .. foe.level
+    local model = { battle = true, foe = foe, wild = st.wild == true }
+    if not st.wild then
+      local left = 0
+      for _, member in ipairs(type(st.foeParty) == "table" and st.foeParty or {}) do
+        if (tonumber(member.hp) or 0) > 0 then left = left + 1 end
+      end
+      model.note = T("D_TRAINER")
+      model.left = left > 0 and T("D_FOE_LEFT"):format(left) or nil
+      return model
+    end
+    -- every ball in the bag (the Safari Ball in the Safari Zone), with its chance
+    model.balls = {}
+    local bag = game.session.bag
+    local function add(id, qty)
+      local odds = th.Catching and try(th.Catching.catchOdds, id, battler, st, game.session)
+      if not odds then return end
+      local p = catchChance(odds)
+      model.balls[#model.balls + 1] = { id = id, qty = qty, name = nameCase(try(h.Items.displayName, id) or "?"),
+        pic = itemPic(th, id), chance = p, text = p >= 1 and "100%" or (p < 0.001 and "<0.1%" or ("%.1f%%"):format(p * 100)) }
+    end
+    if st.safari then
+      local okS, Safari = pcall(require, "src.core.game3.safari")
+      add(SAFARI_BALL, okS and type(Safari) == "table" and tonumber((try(Safari.balls, game.session))) or nil)
+    else
+      for _, row in ipairs(bag and th.Bag and try(th.Bag.listPocket, bag, "POKE_BALLS") or {}) do
+        if (tonumber(row.qty) or 0) > 0 then add(row.id, row.qty) end
+      end
+    end
+    table.sort(model.balls, function(a, b) return a.chance > b.chance end)
+    if not th.Catching then model.note = T("D_NO_ODDS")
+    elseif #model.balls == 0 then model.note = T("D_NO_BALLS") end
+    return model
+  end
+  local function dashField(h, th, now)
+    local model = { field = true }
+    wildModel(now)
+    model.area = wildCache and wildCache.area or ""
+    model.wild = wildCache and wildCache.rows or {}
+    local chips = {}
+    local steps = repelLeft()
+    if steps > 0 then chips[#chips + 1] = { text = T("D_REPEL"):format(steps), tone = "accent" } end
+    if th.toolsReady and th.VsSeeker and bagCount(th, ITEM_SEEKER) > 0 then
+      local charge = tonumber(try(th.VsSeeker.getBattery, game.session)) or 0
+      local full = tonumber(th.VsSeeker.MAX_CHARGE) or 100
+      chips[#chips + 1] = charge >= full and { text = T("D_SEEKER_READY"), tone = "good" }
+        or { text = T("D_SEEKER"):format(floor(charge * 100 / max(1, full))) }
+    end
+    local okDC, DC = pcall(require, "src.core.game3.daycare")
+    local dc = okDC and type(DC) == "table" and try(DC.stateOf, game.session)
+    if dc and try(DC.isEggPending, dc) == true then chips[#chips + 1] = { text = T("D_EGG"), tone = "good" } end
+    local c = counterLoad()
+    if c and (c.since or 0) > 0 then chips[#chips + 1] = { text = T("D_SINCE"):format(c.since) } end
+    model.chips = chips
+    local radar = radarModel()
+    local left = radar.visibleLeft + radar.hiddenLeft
+    if left > 0 then
+      local near = radar.items[1]
+      model.items = T("D_ITEMS"):format(left) .. (near and ("  ·  " .. T("D_NEAREST"):format(near.name, near.where)) or "")
+    elseif radar.visibleTotal + radar.hiddenTotal > 0 then
+      model.items = T("ALL_FOUND")
+    end
+    return model
+  end
+  local function dashModel(now)
+    local h, th = host(), toolHost()
+    if try(h.Battle.isActive) == true then
+      local model = dashBattle(h, th)
+      if model then return model end
+    end
+    return dashField(h, th, now)
+  end
+
   -- Notices: a short feed of what changed, newest first.
   local notices = { rows = {}, last = {}, nextAt = 0 }
   local function notify(title, detail, tone)
@@ -1818,15 +2028,18 @@ return function(mod)
       else UI.notice(w, h, { model and T("EGG") or T("NO_PARTY"), model and model.label or nil }) end
     elseif kind == "party" then
       local model = partyModel()
-      if partyState.selected and partyState.selected > #model.rows then partyState.selected = nil end
+      if model.rows and partyState.selected and partyState.selected > #model.rows then partyState.selected = nil end
       model.selected = partyState.selected
       partyState.hits = UI.party(model, w, h) or {}
+      if partyState.hits.fits then partyState.fits = partyState.hits.fits end
     elseif kind == "dex" then
       local model = dexModel()
       dexState.hits = UI.dex(model, w, h) or {}
       dexState.fits = model.fits or dexState.fits
     elseif kind == "notices" then
       UI.notices(notices, w, h, now)
+    elseif kind == "dash" then
+      UI.dash(dashModel(now), w, h)
     elseif kind == "box" then
       local model = boxModel()
       if model then boxState.hits = UI.box(model, w, h) or {} else UI.notice(w, h, { T("NO_PC") }) end
@@ -1918,6 +2131,16 @@ return function(mod)
     return false
   end
   mod.exports.debugBoxPointer = function(action, x, y) return boxPointer(action, x, y) end
+  mod.exports.debugDash = function() return dashModel(love.timer.getTime()) end
+  mod.exports.debugPartyPress = function(field, value)
+    for _, hit in ipairs(partyState.hits) do
+      if hit[field] ~= nil and (value == nil or hit[field] == value) then
+        partyClick(hit.x + 1, hit.y + 1)
+        return true
+      end
+    end
+    return false
+  end
   mod.exports.debugBoxHit = function(field, value)
     for _, hit in ipairs(boxState.hits) do
       if hit[field] ~= nil and (value == nil or hit[field] == value) then return hit end
@@ -1929,7 +2152,7 @@ return function(mod)
 
   -- Trainer Desk, when it is installed, enabled and laying out the window.
   local docked            -- { api, language } while the panels live in the dock
-  local DOCK_KINDS = { "party", "wild", "enemy", "radar", "ally", "tools", "trainer", "progress", "map", "region", "bag", "moves", "daycare", "counter", "dex", "notices", "box" }
+  local DOCK_KINDS = { "dash", "party", "wild", "enemy", "radar", "ally", "tools", "trainer", "progress", "map", "region", "bag", "moves", "daycare", "counter", "dex", "notices", "box" }
   local function dockApi()
     if suspended or option("placement") == "windows" or not mod.find then return nil end
     local other = mod.find("trainer_desk")
@@ -1942,7 +2165,7 @@ return function(mod)
     docked = nil
   end
   -- Every view becomes a dock panel; the dock decides where each one sits.
-  local SIDES = { party = "right" }
+  local SIDES = { party = "right", dash = "right" }
   local function syncDock(api)
     local language = tostring(option("language"))
     if docked and docked.api == api and docked.language == language then return end
@@ -1964,8 +2187,9 @@ return function(mod)
             wildState.page = max(1, wildState.page + ((tonumber(amount) or 0) > 0 and -1 or 1))
             wildState.pageUntil = love.timer.getTime() + 30
           elseif action == "down" then pcall(wildClick, x, y) end
-        end or kind == "party" and function(action, x, y)
-          if action == "down" then pcall(partyClick, x, y) end
+        end or kind == "party" and function(action, x, y, amount)
+          if action == "wheel" and partyState.itemFor then partyState.page = max(1, partyState.page + ((tonumber(amount) or 0) > 0 and -1 or 1))
+          elseif action == "down" then pcall(partyClick, x, y) end
         end or kind == "dex" and function(action, x, y, amount)
           if action == "wheel" then dexState.page = max(1, dexState.page + ((tonumber(amount) or 0) > 0 and -1 or 1))
           elseif action == "down" then pcall(dexClick, x, y) end

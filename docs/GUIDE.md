@@ -1,6 +1,6 @@
 # Trainer Lens: player guide
 
-Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with a few exceptions that act only when you click: **Tools** (and its **Auto Repel**), swapping two **Party** members, and moving or sorting Pokémon in the **PC**.
+Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with a few exceptions that act only when you click: **Tools** (and its **Auto Repel**), swapping two **Party** members or their held items, and moving or sorting Pokémon in the **PC**.
 
 ## Installing
 
@@ -16,11 +16,20 @@ Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the
 
 ## The panels
 
+### Dashboard
+One panel that changes with what you are doing.
+
+- **Exploring:** the area's name; chips for the Repel steps left, the VS Seeker charge, an egg waiting at the Day-Care and the encounters since your last shiny; the area's Pokémon as tiles (a Poké Ball when caught, the chance and the levels); and how many items are left on the map, with the nearest one.
+- **In a wild battle:** the opponent (picture, types, HP, status, whether you have caught it) and every ball in your bag with its **chance to catch in one throw**, best first. The chance uses the game's own formula with the opponent's current HP and status and each ball's bonus (Net, Nest, Repeat, Timer and Dive Balls included), so it changes as you weaken it or put it to sleep. In the Safari Zone it shows the Safari Ball.
+- **In a trainer battle:** the opponent and how many Pokémon the trainer has left.
+
 ### Area Pokémon
 The wild Pokémon of the map you are on, grouped by how you meet them: grass, Surf, Old/Good/Super Rod, rocks. Each row shows the level range and the chance. A Poké Ball marks the species you have caught. Click a species to see its sheet. The list turns its pages by itself; use the **<** **>** buttons or the mouse wheel to choose a page.
 
 ### Party
 HP, level, gender, status and held item of your party. **To change the order**, click one Pokémon and then the one it should swap with.
+
+**Held items:** click the item line of a Pokémon (**+ Item** when it holds nothing; on small cards, its picture). The item view shows what it holds, with **Take** to put it back in the bag, and the bag's items that can be held: click one to give it, which switches it with the held one. This uses the game's own party-menu functions, so the bag changes exactly as in the game, and it only works in the field with no menu open and no battle. Mail is left alone: give or take Mail in the game, where you write it.
 
 ### Opponent and My Pokémon
 The full sheet of a Pokémon: types, nature, ability, item, moves, and one radar chart with three shapes: stats (purple), IVs (green, out of 31) and EVs (blue, out of 252). An arrow next to a stat shows the nature raising or lowering it.

@@ -30,7 +30,7 @@ return { OPPONENT = "あいて", AREA = "このエリアのポケモン", PARTY 
       SUPER = "すごいつりざお", ROCK = "いわ", SHINY = "色違い", RADAR = "どうぐレーダー", VISIBLE = "見える",
       HIDDEN = "かくれた", HERE = "ここ", NO_ITEMS = "このマップにどうぐはありません", ALL_FOUND = "ここはすべて拾った",
       NO_DATA = "このマップのデータはありません", LEFT = "のこり", DIRS = { "北", "北東", "東", "南東", "南", "南西", "西", "北西" },
-      TABS = { wild = "エリアのポケモン", party = "てもち", enemy = "あいて", radar = "どうぐレーダー", ally = "自分のポケモン", tools = "ツール", trainer = "トレーナー", progress = "進み具合", map = "エリアの地図", region = "地方の地図",
+      TABS = { dash = "まとめ", wild = "エリアのポケモン", party = "てもち", enemy = "あいて", radar = "どうぐレーダー", ally = "自分のポケモン", tools = "ツール", trainer = "トレーナー", progress = "進み具合", map = "エリアの地図", region = "地方の地図",
         bag = "バッグ", moves = "わざ", daycare = "育て屋", counter = "カウンター", dex = "ずかん", notices = "お知らせ", box = "パソコン" },
       ALLY = "自分のポケモン", IN_BATTLE = "バトル中", SUMMARY = "つよさ", BOX = "ボックス", MENU = "てもち", LEAD = "先頭",
       HELD = "もちもの", NO_PARTY = "てもちがいません",
@@ -41,4 +41,5 @@ return { OPPONENT = "あいて", AREA = "このエリアのポケモン", PARTY 
       LV = "Lv",
       LOCK_BOX = "ボックスをロック", UNLOCK_BOX = "ロックを解除", SORT = "並べかえ", UNDO = "元に戻す", CANCEL = "キャンセル", SORT_GO = "並べかえ", SORT_TITLE = "パソコンを並べかえ", SORT_NOTE = "ロックしたボックスはそのまま (%d個)。図鑑順はいないポケモンの所を空けます。タマゴは最後。", SORT_DEX_ALL = "図鑑順、同じポケモンは並べる", SORT_DEX_SIMPLE = "図鑑順、重複は最後に", SORT_SPECIES = "ポケモン順、次にレベル", SORT_LV_UP = "レベルの低い順", SORT_LV_DOWN = "レベルの高い順", SORT_CONFIRM = "%d匹を%d個のボックスで並べかえますか?", SORT_WARN = "ロックしたボックスは変わりません。新しい順番はセーブすると残ります。ほかに何も動かしていなければ元に戻せます。", SORT_DONE = "%d匹を並べかえました", SORT_BUSY = "メニューを閉じ、バトルを終えてください", SORT_NONE = "ロックしていないボックスにポケモンがいません", ALL_LOCKED = "すべてのボックスがロックされています", UNDONE = "元に戻しました", UNDO_GONE = "パソコンが変わったので戻せません",
       SORT_COMPACT = "すきまをつめる (順番はそのまま)", SORT_NO_ROOM = "入りきりません: %dマス必要、ロックしていないボックスは%dマス", DEX_NO = "No.%03d",
-      MOVE = "いどう", MOVED = "いどうしました", MOVE_PICK = "%sをどこに置く? マスをクリック (どのボックスでも)" }
+      MOVE = "いどう", MOVED = "いどうしました", MOVE_PICK = "%sをどこに置く? マスをクリック (どのボックスでも)",
+      DASH = "まとめ", D_CATCH = "1回で捕まえる確率", D_TRAINER = "トレーナー戦: 捕まえられません", D_FOE_LEFT = "のこり%d匹", D_NO_BALLS = "バッグにボールがありません", D_NO_ODDS = "捕獲率を出せません", D_REPEL = "むしよけ: あと%d歩", D_SEEKER = "バトルサーチャー %d%%", D_SEEKER_READY = "バトルサーチャー使用可", D_EGG = "育て屋にタマゴ", D_SINCE = "前の色違いから%d回", D_ITEMS = "ここにどうぐがあと%d個", D_NEAREST = "いちばん近い: %s、%s", GIVE_ITEM = "+ どうぐ", ITEM_OF = "%sのもちもの", ITEM_NONE = "なにも持っていません", TAKE = "あずかる", GIVE_HINT = "バッグのどうぐをクリックで持たせる (持っている物と入れかえ)", NO_HOLDABLE = "持たせられるどうぐがありません", ITEM_GIVEN = "%sに%sを持たせました", ITEM_SWITCHED = "%sに%sを持たせ、%sをバッグにもどしました", ITEM_TAKEN = "%sをバッグにもどしました", BAG_FULL = "バッグがいっぱいです", CANT_HOLD = "%sは持たせられません", MAIL_HELD = "メールを持っています: ゲームで外してください", NOT_DONE = "できませんでした" }

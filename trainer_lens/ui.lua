@@ -438,8 +438,73 @@ return function(env)
   ---------------------------------------------------------------------------
   -- The team
   ---------------------------------------------------------------------------
+  local para   -- wraps text over a few lines; defined with the Pokédex views below
+  -- A small rounded button; returns its width.
+  local function smallButton(label, x, y, tone, hits, hit, size)
+    size = size or 11
+    local bw, bh = widthOf(label, size) + 16, size + 11
+    color(tone or C.raised)
+    G.rectangle("fill", x, y, bw, bh, 6, 6)
+    text(label, x + bw / 2, y + 5, C.text, size, "center")
+    hit.x, hit.y, hit.w, hit.h = x, y, bw, bh
+    hits[#hits + 1] = hit
+    return bw
+  end
+
+  -- The held item of one party member: what it holds, Take, and the bag's
+  -- holdable items to give. Returns hits (with .fits, the rows a page holds).
+  local function partyItems(model, w, h)
+    local pad, hits = 8, {}
+    local bw = smallButton("<", pad, pad, nil, hits, { back = true }, 12)
+    avatar(model.pic, pad + bw + 6, pad - 3, 28)
+    local used = pager(w - pad, pad - 2, model.page, model.pages, hits)
+    text(fit(model.title, w - pad * 2 - bw - 44 - used, 13), pad + bw + 40, pad + 3, C.text, 13)
+    local y = pad + 32
+    -- what it holds now
+    card(pad, y, w - pad * 2, 52, C.card, 8)
+    if model.held then
+      sprite(model.held.pic, pad + 8, y + 10, 32)
+      local tx = pad + 48
+      local right = w - pad - 8
+      local takeW = 0
+      if not model.held.mail then
+        takeW = widthOf(T("TAKE"), 11) + 16
+        smallButton(T("TAKE"), right - takeW, y + 14, nil, hits, { take = true })
+      end
+      text(fit(model.held.name, right - tx - takeW - 8, 13), tx, y + 8, C.text, 13)
+      local sub = model.held.mail and T("MAIL_HELD") or model.held.description
+      text(fit(sub or "", right - tx - takeW - 8, 10), tx, y + 28, C.muted, 10)
+    else
+      text(T("ITEM_NONE"), pad + 12, y + 18, C.faint, 12)
+    end
+    y = y + 60
+    text(fit(T("GIVE_HINT"), w - pad * 2, 10), pad + 2, y, C.muted, 10)
+    y = y + 16
+    local footer = model.flash and 32 or 0
+    local rowH = 28
+    local fits = max(1, floor((h - y - footer - pad) / rowH))
+    hits.fits = fits
+    if #model.rows == 0 then
+      text(T("NO_HOLDABLE"), w / 2, y + 20, C.faint, 12, "center")
+    end
+    local first = (model.page - 1) * fits + 1
+    for index = first, min(#model.rows, first + fits - 1) do
+      local row = model.rows[index]
+      card(pad, y, w - pad * 2, rowH - 4, C.card, 6)
+      sprite(row.pic, pad + 4, y + 1, 22)
+      local qty = "x" .. tostring(row.qty)
+      text(fit(row.name, w - pad * 2 - 44 - widthOf(qty, 11) - 12, 12), pad + 32, y + 4, C.text, 12)
+      text(qty, w - pad - 8, y + 5, C.muted, 11, "right")
+      hits[#hits + 1] = { x = pad, y = y, w = w - pad * 2, h = rowH - 4, give = row.id }
+      y = y + rowH
+    end
+    if model.flash then para(model.flash, pad + 2, h - pad - 28, w - pad * 2, C.text, 11, 2) end
+    return hits
+  end
+
   function UI.party(model, w, h)
     background(w, h)
+    if model.itemView then return partyItems(model.itemView, w, h) end
     local pad, gap = 8, 6
     local count = #model.rows
     if count == 0 then return UI.notice(w, h, { T("NO_PARTY") }) end
@@ -452,7 +517,6 @@ return function(env)
       local x = pad + floor((index - 1) / perColumn) * (cw + gap)
       local y = pad + ((index - 1) % perColumn) * (ch + gap)
       local fainted = not mon.egg and mon.hp <= 0
-      hits[#hits + 1] = { x = x, y = y, w = cw, h = ch, slot = index }
       card(x, y, cw, ch, fainted and mix(C.card, C.bg, 0.5) or C.card)
       if model.selected == index then
         -- picked up: the next one clicked trades places with it
@@ -463,6 +527,8 @@ return function(env)
       end
       local size = ch - 10
       avatar(mon.pic, x + 6, y + 5, size, fainted)
+      -- the item line (or, on short cards, the picture) opens the item view; the rest of the card reorders
+      if not mon.egg and ch < 52 then hits[#hits + 1] = { x = x, y = y, w = size + 12, h = ch, itemSlot = index } end
       local tx, right = x + size + 16, x + cw - 10
       if mon.egg then
         text(mon.name, tx, y + ch / 2 - 8, C.muted, 14)
@@ -480,11 +546,23 @@ return function(env)
         if ch >= 52 then
           local px = tx
           if mon.status then px = px + pill(mon.status, px, y + 24, STATUS[mon.status] or C.faint, 9) + 6 end
-          if mon.item then text(fit(mon.item, right - px, 10), px, y + 25, C.faint, 10) end
+          local label = mon.item or mon.giveLabel
+          if label then
+            local lw = min(right - px, widthOf(label, 10) + 10)
+            color(mix(C.card, C.accent, 0.12))
+            G.rectangle("fill", px - 3, y + 22, lw, 16, 4, 4)
+            text(fit(label, right - px, 10), px, y + 24, mon.item and C.text or C.faint, 10)
+            hits[#hits + 1] = { x = px - 3, y = y + 20, w = lw, h = 20, itemSlot = index }
+          end
         elseif mon.status then
           pill(mon.status, right - widthOf(mon.levelText, 12) - widthOf(mon.status, 9) - 20, y + 5, STATUS[mon.status] or C.faint, 9)
         end
       end
+      hits[#hits + 1] = { x = x, y = y, w = cw, h = ch, slot = index }
+    end
+    if model.flash then
+      color(C.bg); G.rectangle("fill", 0, h - 22, w, 22)
+      text(fit(model.flash, w - pad * 2, 11), pad, h - 17, C.text, 11)
     end
     return hits
   end
@@ -933,7 +1011,7 @@ return function(env)
   -- Bag, moves, Day-Care and the encounter counter
   ---------------------------------------------------------------------------
   -- Text over several lines, cut to a number of them.
-  local function para(value, x, y, w, c, size, lines)
+  function para(value, x, y, w, c, size, lines)
     G.setFont(font(size))
     local _, wrapped = font(size):getWrap(tostring(value or ""), max(20, w))
     color(c)
@@ -1359,6 +1437,114 @@ return function(env)
       G.pop()
     end
     return hits
+  end
+
+  ---------------------------------------------------------------------------
+  -- Dashboard: the area while exploring; the opponent (and the catch chance of
+  -- each ball) in a battle
+  ---------------------------------------------------------------------------
+  local function chanceColor(p)
+    return p >= 0.5 and C.hp or p >= 0.2 and C.hpMid or C.hpLow
+  end
+  function UI.dash(model, w, h)
+    background(w, h)
+    local pad = 8
+    if model.battle then
+      local foe = model.foe
+      local wide = w >= 520
+      -- the opponent: picture, name, level, types, HP
+      local picSize = min(96, max(56, floor(h * 0.22)))
+      card(pad, pad, w - pad * 2, picSize + 16, C.card, 8)
+      sprite(foe.pic, pad + 8, pad + 8, picSize, false)
+      local tx, right = pad + picSize + 20, w - pad - 10
+      text(foe.levelText, right, pad + 10, C.muted, 12, "right")
+      local name = fit(foe.name, right - tx - widthOf(foe.levelText, 12) - 40, 15)
+      text(name, tx, pad + 8, C.text, 15)
+      local cursor = tx + widthOf(name, 15) + 5
+      genderMark(foe.gender, cursor, pad + 10, 12)
+      if foe.shiny then star(cursor + 22, pad + 17, 6) end
+      if model.wild then pokeball(right - widthOf(foe.levelText, 12) - 14, pad + 17, 6, foe.caught) end
+      local px = tx
+      if foe.type then px = px + pill(typeLabel(foe.type), px, pad + 32, TYPE[foe.type] or C.faint) + 4 end
+      if foe.type2 then px = px + pill(typeLabel(foe.type2), px, pad + 32, TYPE[foe.type2] or C.faint) + 4 end
+      if foe.status then pill(foe.status, px + 2, pad + 32, STATUS[foe.status] or C.faint) end
+      local ratio = foe.hp / max(1, foe.maxHp)
+      local hpText = ("%d%%"):format(floor(ratio * 100 + 0.5))
+      bar(tx, pad + picSize - 4, max(30, right - tx - widthOf(hpText, 11) - 8), 8, ratio, hpColor(ratio))
+      text(hpText, right, pad + picSize - 8, C.text, 11, "right")
+      local y = pad + picSize + 26
+      if model.balls and #model.balls > 0 then
+        text(T("D_CATCH"), pad + 2, y, C.muted, 11)
+        y = y + 18
+        local columns = wide and 2 or 1
+        local cw = (w - pad * 2 - (columns - 1) * 6) / columns
+        local rowH = 30
+        for index, ball in ipairs(model.balls) do
+          local col = (index - 1) % columns
+          local rowY = y + floor((index - 1) / columns) * rowH
+          if rowY + rowH > h - pad then break end
+          local x = pad + col * (cw + 6)
+          card(x, rowY, cw, rowH - 4, C.card, 6)
+          sprite(ball.pic, x + 4, rowY + 1, 24)
+          local pct = ball.text
+          local qty = ball.qty and ("x" .. ball.qty) or ""
+          text(pct, x + cw - 8, rowY + 4, chanceColor(ball.chance), 14, "right")
+          local room = cw - 40 - widthOf(pct, 14) - widthOf(qty, 10) - 16
+          text(fit(ball.name, room, 12), x + 32, rowY + 6, C.text, 12)
+          text(qty, x + 32 + min(room, widthOf(fit(ball.name, room, 12), 12)) + 6, rowY + 8, C.faint, 10)
+          -- a thin bar under the name shows the same chance
+          bar(x + 32, rowY + rowH - 9, max(10, cw - 44 - widthOf(pct, 14)), 3, ball.chance, chanceColor(ball.chance))
+        end
+      elseif model.note then
+        text(fit(model.note, w - pad * 2, 12), pad + 2, y, C.muted, 12)
+        if model.left then text(model.left, pad + 2, y + 20, C.text, 12) end
+      end
+      return {}
+    end
+
+    -- exploring
+    local y = pad
+    text(fit(model.area or "", w - pad * 2, 13), pad + 2, y, C.text, 13)
+    y = y + 22
+    if #model.chips > 0 then
+      local x = pad
+      for _, chipInfo in ipairs(model.chips) do
+        local tone = chipInfo.tone == "good" and mix(C.card, C.hp, 0.35) or chipInfo.tone == "accent" and mix(C.card, C.accent, 0.35) or C.raised
+        local cw = widthOf(chipInfo.text, 11) + 14
+        if x + cw > w - pad then x = pad; y = y + 24 end
+        color(tone)
+        G.rectangle("fill", x, y, cw, 20, 6, 6)
+        text(chipInfo.text, x + 7, y + 4, C.text, 11)
+        x = x + cw + 6
+      end
+      y = y + 28
+    end
+    local itemsH = model.items and 22 or 0
+    if #model.wild == 0 then
+      text(T("NO_WILD"), pad + 2, y + 4, C.faint, 12)
+    else
+      -- the area's Pokémon as tiles: picture, Poké Ball if caught, chance
+      local tile = 58
+      local columns = max(1, floor((w - pad * 2 + 6) / (tile + 6)))
+      local rows = max(1, floor((h - y - itemsH - pad + 6) / (tile + 14 + 6)))
+      local shown = 0
+      for index, row in ipairs(model.wild) do
+        local col = (index - 1) % columns
+        local line = floor((index - 1) / columns)
+        if line >= rows then break end
+        local x = pad + col * (tile + 6)
+        local ty = y + line * (tile + 14 + 6)
+        card(x, ty, tile, tile + 14, row.caught and C.card or mix(C.card, C.bg, 0.4), 6)
+        sprite(row.pic, x + 9, ty + 4, tile - 18, not row.caught)
+        pokeball(x + tile - 8, ty + 8, 5, row.caught)
+        text(row.chanceText, x + tile / 2, ty + tile - 8, C.text, 10, "center")
+        text(fit(row.levelText, tile - 4, 9), x + tile / 2, ty + tile + 2, C.faint, 9, "center")
+        shown = index
+      end
+      if shown < #model.wild then text("+" .. (#model.wild - shown), w - pad, y - 18, C.faint, 10, "right") end
+    end
+    if model.items then text(fit(model.items, w - pad * 2, 11), pad + 2, h - pad - 14, C.muted, 11) end
+    return {}
   end
 
   return UI

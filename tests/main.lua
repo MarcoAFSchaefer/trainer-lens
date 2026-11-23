@@ -56,9 +56,30 @@ do
   package.preload["src.core.game3.field_moves"] = function() return { MOVES = { SURF = 57, CUT = 15 },
     partyMoveUser = function(p, move) if move == "SURF" or move == "CUT" then return p[1], 0 end end } end
   package.preload["src.core.game3.bag"] = function() return { get = function(bag, id) return bag[id] or 0 end,
-      listPocket = function(bag, key) local rows = {}; if key == "ITEMS" then for id, n in pairs(bag) do rows[#rows + 1] = { id = id, qty = n, name = "ITEM " .. id, description = "Um item de teste com uma descrição comprida o bastante para quebrar em duas linhas no rodapé." } end; table.sort(rows, function(a, b) return a.id < b.id end) end; return rows end, has = function(bag, id) return (bag[id] or 0) > 0 end } end
+      listPocket = function(bag, key) local rows = {}; if key == "ITEMS" or key == "POKE_BALLS" then for id, n in pairs(bag) do if (key == "POKE_BALLS") == (id <= 12) and n > 0 then rows[#rows + 1] = { id = id, qty = n, name = "ITEM " .. id, description = "Um item de teste com uma descrição comprida o bastante para quebrar em duas linhas no rodapé." } end end; table.sort(rows, function(a, b) return a.id < b.id end) end; return rows end, has = function(bag, id) return (bag[id] or 0) > 0 end } end
   package.preload["src.core.game3.item_use"] = function() return { canFish = function() return true end,
-    useField = function(_, bag, id) used[#used + 1] = "item" .. id; bag[id] = bag[id] - 1; return true, "x", "It was used." end } end
+    useField = function(_, bag, id) used[#used + 1] = "item" .. id; bag[id] = bag[id] - 1; return true, "x", "It was used." end,
+    -- held items, as the game's party menu does them
+    partyGiveSource = function(bag) return { remove = function(id) bag[id] = bag[id] - 1 end } end,
+    giveToMon = function(session, bag, id, slot, source)
+      local mon = session.party[slot]
+      if id == 260 then return false, "cant_hold" end
+      local prev = mon.heldItem
+      source.remove(id)
+      if prev then bag[prev] = (bag[prev] or 0) + 1 end
+      mon.heldItem, mon.item = id, id
+      return true, "give"
+    end,
+    takeFromMon = function(session, bag, slot)
+      local mon = session.party[slot]
+      local held = mon.heldItem
+      if not held then return false, "none" end
+      bag[held] = (bag[held] or 0) + 1
+      mon.heldItem, mon.item = nil, nil
+      return true, "take"
+    end } end
+  package.preload["src.core.game3.mail"] = function() return { isMailItem = function(id) return id == 121 end } end
+  package.preload["src.core.game3.battle.catching"] = function() return { catchOdds = function(id) return ({ [1] = 255, [2] = 150, [3] = 100, [4] = 60 })[id] or 60 end } end
   package.preload["src.core.game3.vs_seeker"] = function() return { MAX_CHARGE = 100, getBattery = function() return 73 end } end
   package.preload["src.ui.game3.message"] = function() return { show = function(text) used[#used + 1] = "say:" .. text end, close = function() end } end
   package.preload["src.core.game3.player"] = function() return { biking = false, cellX = 7, cellY = 5, facing = "left" } end
@@ -315,7 +336,7 @@ end
   local function settle() frames(1); love.timer.sleep(0.6); frames(2) end
   local function click(x, y) local a = ptr("pressed", x, y); ptr("released", x, y); return a end
   dock.options_.reset_layout = true; settle()
-  check(#api.panels() == 18 and stateOf("second_screen") == "docked", "eighteen panels, all docked")
+  check(#api.panels() == 19 and stateOf("second_screen") == "docked", "nineteen panels, all docked")
   -- close a panel with the X on its tab
   local r = tabRect("trainer_lens.party"); click(r.x + 6, r.y + 6); frames(1)
   click(r.x + r.w - 10, r.y + 11); settle()
@@ -510,10 +531,58 @@ end
       local c = G.newCanvas(320, 200)
       local function paintParty() G.setCanvas(c); G.push("all"); G.origin(); pp.exports.debugPaint("party", 320, 200); G.pop(); G.setCanvas() end
       battle.active = false; paintParty()
-      pp.exports.debugClick("party", 40, 30); paintParty(); pp.exports.debugClick("party", 40, 70)
+      pp.exports.debugClick("party", 150, 30); paintParty(); pp.exports.debugClick("party", 150, 70)
       check(TOOL_USED[#TOOL_USED] == "swap12", "clicking one team member and then another swaps them through the game: " .. tostring(TOOL_USED[#TOOL_USED]))
-      pp.exports.debugClick("party", 40, 30); pp.exports.debugClick("party", 40, 30)
+      pp.exports.debugClick("party", 150, 30); pp.exports.debugClick("party", 150, 30)
       check(TOOL_USED[#TOOL_USED] == "swap12", "clicking the same one twice just lets go of it")
+      -- held items: the picture of a short card opens the item view of that member
+      local s = game.session
+      s.bag[200], s.bag[201], s.bag[121] = 2, 1, 1          -- two items and a Mail
+      paintParty(); pp.exports.debugClick("party", 20, 30)
+      local c2 = G.newCanvas(360, 320)
+      local function paintItems() G.setCanvas(c2); G.clear(0, 0, 0, 1); G.push("all"); G.origin(); pp.exports.debugPaint("party", 360, 320); G.pop(); G.setCanvas() end
+      paintItems()
+      local function clickGive(id) return pp.exports.debugPartyPress("give", id) end
+      check(not clickGive(121), "Mail is not offered to give")
+      battle.active = true
+      check(clickGive(200), "the bag's items are offered")
+      check(s.party[1].heldItem == nil and s.bag[200] == 2, "no giving during a battle")
+      battle.active = false
+      paintItems(); clickGive(200)
+      check(s.party[1].heldItem == 200 and s.bag[200] == 1, "giving moves the item from the bag: " .. tostring(s.party[1].heldItem))
+      paintItems(); clickGive(201)
+      check(s.party[1].heldItem == 201 and s.bag[200] == 2 and s.bag[201] == 0, "giving another switches them")
+      local fi = io.open(OUT .. "/panels-party-items.png", "wb"); paintItems(); fi:write(c2:newImageData():encode("png"):getString()); fi:close()
+      paintItems(); check(pp.exports.debugPartyPress("take"), "Take is offered for a held item")
+      check(s.party[1].heldItem == nil and s.bag[201] == 1, "taking puts it back in the bag")
+      paintItems(); pp.exports.debugPartyPress("back")
+      s.bag[200], s.bag[201], s.bag[121] = nil, nil, nil
+      battle.active = true
+    end
+    -- Dashboard: the area while exploring, the opponent and catch chances in a wild battle
+    do
+      local c = G.newCanvas(420, 400)
+      local function paintDash(w2, h2) G.setCanvas(c); G.clear(0, 0, 0, 1); G.push("all"); G.origin(); local ok, err = pcall(pp.exports.debugPaint, "dash", w2 or 420, h2 or 400); G.pop(); G.setCanvas(); check(ok, "the dashboard draws: " .. tostring(err)) end
+      battle.active = false
+      game.session.repelSteps = 37
+      paintDash()
+      local fd = io.open(OUT .. "/panels-dash-field.png", "wb"); fd:write(c:newImageData():encode("png"):getString()); fd:close()
+      local field = pp.exports.debugDash()
+      check(field.field and #field.wild > 0, "exploring shows the area's Pokémon")
+      check(field.chips[1] and field.chips[1].text:find("37"), "the repel steps are shown")
+      game.session.repelSteps = 0
+      game.session.bag[2], game.session.bag[4] = 3, 10
+      battle.active, battle.state = true, { wild = true, enemy = { mon = mon(19, 20) }, player = { mon = game.session.party[1] } }
+      paintDash()
+      local fb = io.open(OUT .. "/panels-dash-battle.png", "wb"); fb:write(c:newImageData():encode("png"):getString()); fb:close()
+      local fight = pp.exports.debugDash()
+      check(fight.battle and #fight.balls == 2, "every ball in the bag gets a chance: " .. tostring(fight.balls and #fight.balls))
+      check(fight.balls[1].text == "58.8%" and fight.balls[2].text == "23.5%", "Gen 3 chances, best first: " .. fight.balls[1].text .. " " .. fight.balls[2].text)
+      paintDash(260, 300)
+      battle.state.wild = false
+      paintDash()
+      check(pp.exports.debugDash().note ~= nil, "a trainer battle says there is no catching")
+      game.session.bag[2], game.session.bag[4] = nil, nil
       battle.active = true
     end
     -- Auto Repel: the weakest repel when none is active, only where wild Pokémon appear

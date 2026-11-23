@@ -2,8 +2,8 @@
   "id": "trainer_lens",
   "title": "Trainer Lens",
   "author": "MarcoAFSchaefer",
-  "summary": "17 information panels for FireRed/LeafGreen: area Pokémon, IV/EV sheets, maps, Pokédex, bag, PC sorting, field tools with Auto Repel and more.",
-  "version": "2.13.0",
+  "summary": "18 panels for FireRed/LeafGreen: catch chances, area Pokémon, IV/EV sheets, held items, maps, Pokédex, PC sorting, field tools and more.",
+  "version": "2.14.0",
   "categories": [
     "UI",
     "QOL"
