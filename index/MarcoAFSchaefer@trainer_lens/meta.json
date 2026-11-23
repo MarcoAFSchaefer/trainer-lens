@@ -1,7 +1,7 @@
 {
   "id": "trainer_lens",
   "title": "Trainer Lens",
-  "author": "MarcoSchaefer",
+  "author": "MarcoAFSchaefer",
   "summary": "17 information panels for FireRed/LeafGreen: area Pokémon, IV/EV sheets, maps, Pokédex, bag, PC viewer, field tools with Auto Repel and more.",
   "version": "2.10.0",
   "categories": [
@@ -16,8 +16,8 @@
     "maps",
     "frlg"
   ],
-  "repo": "https://github.com/OWNER/trainer-lens",
-  "github": "OWNER/trainer-lens",
+  "repo": "https://github.com/MarcoAFSchaefer/trainer-lens",
+  "github": "MarcoAFSchaefer/trainer-lens",
   "automatic_version_check": true,
   "api": 3,
   "game_version": "0.0.0-dev || >=0.3.93 <2.0.0",
