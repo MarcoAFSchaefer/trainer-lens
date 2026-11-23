@@ -35,4 +35,5 @@ return { OPPONENT = "OPPONENT", AREA = "AREA POKéMON", PARTY = "PARTY", WILD = 
       ALLY = "MY POKéMON", IN_BATTLE = "In battle", SUMMARY = "Summary", BOX = "Box", MENU = "Party", LEAD = "Lead",
       HELD = "Held", NO_PARTY = "Empty party",
       BASE = "Base stats", ENTRY = "Pokédex entry", EVOLVES = "Evolves into", WHERE = "Where to find it",
-      LV = "L" }
+      LV = "L",
+      LOCK_BOX = "Lock box", UNLOCK_BOX = "Unlock box", SORT = "Sort", UNDO = "Undo", CANCEL = "Cancel", SORT_GO = "Sort", SORT_TITLE = "Sort the PC", SORT_NOTE = "Locked boxes stay as they are (%d locked). Eggs go last.", SORT_DEX_ALL = "Living dex, repeats side by side", SORT_DEX_SIMPLE = "Living dex, repeats at the end", SORT_SPECIES = "Species, then level", SORT_LV_UP = "Level, low to high", SORT_LV_DOWN = "Level, high to low", SORT_CONFIRM = "Sort %d Pokémon across %d boxes?", SORT_WARN = "Locked boxes are not touched. The new order is kept when you save the game; Undo puts it back while nothing else has moved.", SORT_DONE = "Sorted %d Pokémon", SORT_BUSY = "Close menus and finish the battle first", SORT_NONE = "No Pokémon in the unlocked boxes", ALL_LOCKED = "Every box is locked", UNDONE = "Order undone", UNDO_GONE = "The PC changed since: nothing undone" }

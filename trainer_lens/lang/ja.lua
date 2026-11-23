@@ -38,4 +38,5 @@ return { OPPONENT = "あいて", AREA = "このエリアのポケモン", PARTY 
       TYPES = { NORMAL = "ノーマル", FIGHTING = "かくとう", FLYING = "ひこう", POISON = "どく", GROUND = "じめん",
         ROCK = "いわ", BUG = "むし", GHOST = "ゴースト", STEEL = "はがね", FIRE = "ほのお", WATER = "みず",
         GRASS = "くさ", ELECTRIC = "でんき", PSYCHIC = "エスパー", ICE = "こおり", DRAGON = "ドラゴン", DARK = "あく" },
-      LV = "Lv" }
+      LV = "Lv",
+      LOCK_BOX = "ボックスをロック", UNLOCK_BOX = "ロックを解除", SORT = "並べかえ", UNDO = "元に戻す", CANCEL = "キャンセル", SORT_GO = "並べかえ", SORT_TITLE = "パソコンを並べかえ", SORT_NOTE = "ロックしたボックスはそのまま (%d個)。タマゴは最後。", SORT_DEX_ALL = "図鑑順、同じポケモンは並べる", SORT_DEX_SIMPLE = "図鑑順、重複は最後に", SORT_SPECIES = "ポケモン順、次にレベル", SORT_LV_UP = "レベルの低い順", SORT_LV_DOWN = "レベルの高い順", SORT_CONFIRM = "%d匹を%d個のボックスで並べかえますか?", SORT_WARN = "ロックしたボックスは変わりません。新しい順番はセーブすると残ります。ほかに何も動かしていなければ元に戻せます。", SORT_DONE = "%d匹を並べかえました", SORT_BUSY = "メニューを閉じ、バトルを終えてください", SORT_NONE = "ロックしていないボックスにポケモンがいません", ALL_LOCKED = "すべてのボックスがロックされています", UNDONE = "元に戻しました", UNDO_GONE = "パソコンが変わったので戻せません" }

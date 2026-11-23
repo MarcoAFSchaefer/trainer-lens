@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.11.0
+
+- PC panel: **Lock box** keeps a box out of sorting (kept per save; the game itself can still change it).
+- PC panel: **Sort** the unlocked boxes by living dex (repeats side by side, or at the end), species then level, or level up or down. Eggs go last; a question comes first; one step of **Undo**. Only in the field, with no menu open and no battle.
+
 ## 2.10.0
 
 - Panels in English, Spanish, Portuguese and Japanese (Language option; English by default). Type names and labels follow the language; game names stay in the game's language.

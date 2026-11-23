@@ -47,6 +47,7 @@ Stored with `mod.cache` under `mod_cache/trainer_lens/`:
 | --- | --- |
 | `counter/v1` | `total=`, `since=`, `shinies=` and `s<species>=<count>` lines. |
 | `autorepel` | `1` when Auto Repel is on. |
+| `box_locks/v1` | Locked PC boxes, one line per save: `<trainer id>:<name>=1,4,7`. |
 | `windows/layout2` | Window positions remembered by the window keeper. |
 
 ## Errors

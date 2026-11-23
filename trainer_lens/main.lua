@@ -1354,9 +1354,12 @@ return function(mod)
     end
   end
 
-  -- PC boxes: read straight from the save's storage, never through anything
-  -- that could create, move, deposit or withdraw.
-  local boxState = { box = nil, selected = nil, hits = {} }
+  -- PC boxes. Looking reads the save's storage directly, never through anything
+  -- that could create, move, deposit or withdraw. The one thing that writes is
+  -- Sort, which the player starts by hand: it rearranges the Pokémon of the
+  -- boxes that are not locked, moving only table references between slots (a
+  -- box holds mons[1..30], nil = empty), and keeps one step of undo.
+  local boxState = { box = nil, selected = nil, hits = {}, view = nil, flash = nil, undo = nil }
   local function boxView(mon)
     -- a boxed Pokémon may carry no computed stats: work them out to show, on a copy
     if tonumber(mon.maxHp) and tonumber(mon.attack) then return mon end
@@ -1369,6 +1372,161 @@ return function(mod)
     copy.hp = tonumber(mon.hp) or stats.maxHp
     return copy
   end
+
+  -- Locked boxes, per save (trainer id and name), in the cache as
+  -- "<id>:<name>=1,4,7" lines. The lock only means Sort leaves the box alone;
+  -- the game itself can still change it.
+  local LOCKS_KEY = "box_locks/v1"
+  local locks = nil
+  local function saveKey()
+    local s = game.session
+    return ("%d:%s"):format(tonumber(s.trainerId or s.id) or 0, (clean(tostring(s.name or s.playerName or "?")):gsub("[=\n]", "")))
+  end
+  local function lockSet()
+    if not locks then
+      locks = {}
+      local saved = mod.cache and mod.cache.read and mod.cache:read(LOCKS_KEY) or ""
+      for line in tostring(saved):gmatch("[^\n]+") do
+        local key, list = line:match("^(.-)=(.*)$")
+        if key then
+          locks[key] = {}
+          for n in list:gmatch("%d+") do locks[key][tonumber(n)] = true end
+        end
+      end
+    end
+    local key = saveKey()
+    locks[key] = locks[key] or {}
+    return locks[key]
+  end
+  local function saveLocks()
+    local lines = {}
+    for key, set in pairs(locks or {}) do
+      local list = {}
+      for n in pairs(set) do list[#list + 1] = n end
+      table.sort(list)
+      if #list > 0 then lines[#lines + 1] = key .. "=" .. table.concat(list, ",") end
+    end
+    table.sort(lines)
+    if mod.cache and mod.cache.write then mod.cache:write(LOCKS_KEY, table.concat(lines, "\n")) end
+  end
+
+  -- The orders Sort offers. Eggs always go last; ties keep their old order.
+  local SORTS = { "dex_all", "dex_simple", "species_level", "level_up", "level_down" }
+  local SORT_LABELS = { dex_all = "SORT_DEX_ALL", dex_simple = "SORT_DEX_SIMPLE", species_level = "SORT_SPECIES",
+    level_up = "SORT_LV_UP", level_down = "SORT_LV_DOWN" }
+  local function sortEntries(entries, order)
+    if order == "dex_simple" then
+      -- the first of each species (highest level, then the one found first) keeps
+      -- its place in the living dex; the repeats follow, in dex order too
+      local best = {}
+      for _, e in ipairs(entries) do
+        local b = not e.egg and best[e.dex]
+        if not e.egg and (not b or e.level > b.level) then best[e.dex] = e end
+      end
+      for _, e in ipairs(entries) do e.extra = (e.egg or best[e.dex] ~= e) and 1 or 0 end
+    end
+    table.sort(entries, function(a, b)
+      if a.egg ~= b.egg then return b.egg end
+      if order == "dex_simple" and a.extra ~= b.extra then return a.extra < b.extra end
+      if order == "level_up" and a.level ~= b.level then return a.level < b.level end
+      if order == "level_down" and a.level ~= b.level then return a.level > b.level end
+      if a.dex ~= b.dex then return a.dex < b.dex end
+      if order == "species_level" and a.level ~= b.level then return a.level < b.level end
+      if (order == "dex_all" or order == "dex_simple") and a.level ~= b.level then return a.level > b.level end
+      return a.index < b.index
+    end)
+  end
+
+  -- Sorting changes the save, so only in the field with no menu, script or battle.
+  local function pcFree()
+    local h = toolHost()
+    if not h.toolsReady then return false end
+    if try(h.Battle.isActive) == true then return false end
+    toolState.world = toolState.world or h.World.new(game, "trainer_lens")
+    local list, why = try(toolState.world.availableFieldActions, toolState.world)
+    return type(list) == "table" and why == nil
+  end
+
+  local function sortPlan(order)
+    local storage, h = game.session.storage, host()
+    local set, boxes, entries = lockSet(), {}, {}
+    for b = 1, #storage.boxes do
+      if not set[b] and type(storage.boxes[b]) == "table" then
+        boxes[#boxes + 1] = b
+        local mons = storage.boxes[b].mons or {}
+        for slot = 1, 30 do
+          local mon = mons[slot]
+          if type(mon) == "table" then
+            local egg = try(h.P.isEgg, mon) == true
+            local species = try(h.P.speciesOf, mon) or 0
+            entries[#entries + 1] = { mon = mon, egg = egg, index = #entries + 1, level = tonumber(mon.level) or 0,
+              dex = tonumber((try(h.P.national, species))) or tonumber(species) or 9999 }
+          end
+        end
+      end
+    end
+    if order then sortEntries(entries, order) end
+    return boxes, entries
+  end
+
+  local function layoutOf(boxes)
+    local storage, out = game.session.storage, {}
+    for _, b in ipairs(boxes) do
+      local mons, copy = storage.boxes[b].mons or {}, {}
+      for slot = 1, 30 do copy[slot] = mons[slot] end
+      out[b] = copy
+    end
+    return out
+  end
+  local function sameLayout(saved)
+    local storage = game.session.storage
+    for b, copy in pairs(saved) do
+      local mons = storage.boxes[b] and storage.boxes[b].mons or {}
+      for slot = 1, 30 do if mons[slot] ~= copy[slot] then return false end end
+    end
+    return true
+  end
+  local function putLayout(saved)
+    local storage = game.session.storage
+    for b, copy in pairs(saved) do
+      storage.boxes[b].mons = storage.boxes[b].mons or {}
+      for slot = 1, 30 do storage.boxes[b].mons[slot] = copy[slot] end
+    end
+  end
+
+  local function flash(key, ...)
+    boxState.flash = { text = select("#", ...) > 0 and T(key):format(...) or T(key), at = love.timer.getTime() }
+  end
+  local function runSort(order)
+    if not pcFree() then return flash("SORT_BUSY") end
+    local boxes, entries = sortPlan(order)
+    if #boxes == 0 then return flash("ALL_LOCKED") end
+    if #entries == 0 then return flash("SORT_NONE") end
+    local before = layoutOf(boxes)
+    local storage, n = game.session.storage, 0
+    for _, b in ipairs(boxes) do
+      storage.boxes[b].mons = storage.boxes[b].mons or {}
+      for slot = 1, 30 do
+        n = n + 1
+        storage.boxes[b].mons[slot] = entries[n] and entries[n].mon or nil
+      end
+    end
+    boxState.undo = { before = before, after = layoutOf(boxes) }
+    boxState.selected = nil
+    flash("SORT_DONE", #entries)
+  end
+  local function undoSort()
+    local undo = boxState.undo
+    boxState.undo = nil
+    if not undo then return end
+    if not pcFree() then boxState.undo = undo return flash("SORT_BUSY") end
+    -- only while nothing else has moved since: otherwise undoing would lose that
+    if not sameLayout(undo.after) then return flash("UNDO_GONE") end
+    putLayout(undo.before)
+    boxState.selected = nil
+    flash("UNDONE")
+  end
+
   local function boxModel()
     local storage = game.session.storage
     if type(storage) ~= "table" or type(storage.boxes) ~= "table" or #storage.boxes == 0 then return nil end
@@ -1377,8 +1535,25 @@ return function(mod)
     boxState.box = max(1, min(boxes, boxState.box or tonumber(storage.currentBox) or 1))
     local box = storage.boxes[boxState.box] or {}
     local mons = type(box.mons) == "table" and box.mons or {}
+    local set = lockSet()
+    local lockedCount = 0
+    for b = 1, boxes do if set[b] then lockedCount = lockedCount + 1 end end
+    if boxState.undo and not sameLayout(boxState.undo.after) then boxState.undo = nil end
+    local now = love.timer.getTime()
+    if boxState.flash and now - boxState.flash.at > 6 then boxState.flash = nil end
     local model = { box = boxState.box, boxes = boxes, slots = {}, count = 0,
-      name = nameCase(clean(tostring(box.name or ("BOX " .. boxState.box)))) }
+      name = nameCase(clean(tostring(box.name or ("BOX " .. boxState.box)))),
+      locked = set[boxState.box] == true, lockedCount = lockedCount, canUndo = boxState.undo ~= nil,
+      flash = boxState.flash and boxState.flash.text, view = boxState.view }
+    if type(boxState.view) == "table" then
+      local unlocked, entries = sortPlan(nil)
+      model.confirm = { title = T(SORT_LABELS[boxState.view.order]),
+        line = T("SORT_CONFIRM"):format(#entries, #unlocked), note = T("SORT_WARN") }
+    elseif boxState.view == "sort" then
+      model.sorts = {}
+      for _, id in ipairs(SORTS) do model.sorts[#model.sorts + 1] = { id = id, label = T(SORT_LABELS[id]) } end
+      model.sortNote = T("SORT_NOTE"):format(lockedCount)
+    end
     for slot = 1, 30 do
       local mon = mons[slot]
       if type(mon) == "table" then
@@ -1391,7 +1566,7 @@ return function(mod)
     local chosen = boxState.selected and mons[boxState.selected]
     if type(chosen) ~= "table" then boxState.selected = nil end
     model.selected = boxState.selected
-    if type(chosen) == "table" then
+    if type(chosen) == "table" and not boxState.view then
       local view = boxView(chosen)
       local pokemon = monBasics(view)
       if not pokemon.egg then
@@ -1409,6 +1584,18 @@ return function(mod)
       if x >= hit.x and x < hit.x + hit.w and y >= hit.y and y < hit.y + hit.h then
         if hit.page then boxState.box, boxState.selected = (boxState.box or 1) + hit.page, nil
         elseif hit.back then boxState.selected = nil
+        elseif hit.lock then
+          local set = lockSet()
+          set[boxState.box] = not set[boxState.box] or nil
+          saveLocks()
+        elseif hit.openSort then boxState.view, boxState.selected = "sort", nil
+        elseif hit.sort then boxState.view = { order = hit.sort }
+        elseif hit.confirm then
+          local order = type(boxState.view) == "table" and boxState.view.order
+          boxState.view = nil
+          if order then runSort(order) end
+        elseif hit.cancel then boxState.view = nil
+        elseif hit.undo then undoSort()
         elseif hit.slot then boxState.selected = boxState.selected ~= hit.slot and hit.slot or nil end
         return
       end
@@ -1607,6 +1794,15 @@ return function(mod)
   mod.exports.debugClick = function(kind, x, y)
     if kind == "box" then return boxClick(x, y) elseif kind == "wild" then return wildClick(x, y) elseif kind == "party" then return partyClick(x, y) elseif kind == "dex" then return dexClick(x, y)
     elseif kind == "bag" then return bagClick(x, y) elseif kind == "counter" then return counterClick(x, y) end
+  end
+  -- the PC panel's clickable places, for the tests: clicks a hit that has `field`
+  mod.exports.debugBoxPress = function(field, value)
+    for _, hit in ipairs(boxState.hits) do
+      if hit[field] ~= nil and (value == nil or hit[field] == value) then
+        return boxClick(hit.x + 1, hit.y + 1) or true
+      end
+    end
+    return false
   end
   mod.exports.debugPaint = function(kind, w, h)
     paint(kind, love.timer.getTime(), w, h)

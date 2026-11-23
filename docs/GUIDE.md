@@ -1,6 +1,6 @@
 # Trainer Lens: player guide
 
-Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with three exceptions that act when you click: **Tools** (and its **Auto Repel**), and swapping two **Party** members.
+Trainer Lens adds information panels to FireRed and LeafGreen: what lives in the area, the full sheet of any Pokémon, maps, your Pokédex, your bag and PC, and one-click field tools. Panels only read the game, with a few exceptions that act only when you click: **Tools** (and its **Auto Repel**), swapping two **Party** members, and sorting the **PC**.
 
 ## Installing
 
@@ -65,7 +65,21 @@ Wild encounters by species, encounters since the last shiny, shinies seen, and t
 A short feed of things worth knowing: a wild shiny, the VS Seeker fully charged, a Repel wearing off, a party member fainting, Day-Care news, Auto Repel, and Trainer Pilot stopping. Kept for this session only.
 
 ### PC
-Your PC boxes as a grid. Click a Pokémon to see its full sheet, with IVs and EVs. View only: nothing is moved, deposited or withdrawn.
+Your PC boxes as a grid. Use **<** **>** or the mouse wheel to change box, and click a Pokémon to see its full sheet, with IVs and EVs.
+
+**Lock box** (or the padlock before the box name) marks a box that sorting must leave alone, such as your legendaries or a box arranged by hand. The lock is only for Trainer Lens: in the game you can still do anything with that box. Locks are kept per save.
+
+**Sort** rearranges every Pokémon in the boxes that are not locked, filling them from the first unlocked box on. Choose an order:
+
+| Order | Result |
+| --- | --- |
+| Living dex, repeats side by side | National Pokédex order; several of one species sit together. |
+| Living dex, repeats at the end | One of each species in Pokédex order (the highest level one), then all the repeats, also in Pokédex order. |
+| Species, then level | Pokédex order; within a species, lowest level first. |
+| Level, low to high | By level; same level in Pokédex order. |
+| Level, high to low | By level, highest first. |
+
+Eggs always go last. A question shows how many Pokémon and boxes will change before anything moves. Sorting only works in the field, with no menu open and no battle. **Undo** puts the boxes back as they were, as long as nothing else in the PC has changed since. The new order is in your game at once and is kept when you save; nothing is ever deposited, withdrawn or released.
 
 ## Settings
 

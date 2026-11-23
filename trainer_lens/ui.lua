@@ -1214,6 +1214,35 @@ return function(env)
   -- Only shown: nothing here moves, deposits or withdraws anything.
   ---------------------------------------------------------------------------
   -- Returns the places that can be clicked: { slot = n } | { page = -1|1 } | { back = true }.
+  -- A small padlock: shut for a locked box, open otherwise.
+  local function padlock(x, y, size, shut, tone)
+    color(tone)
+    local bw, bh = size * 0.8, size * 0.55
+    local bx, by = x + (size - bw) / 2, y + size - bh
+    G.rectangle("fill", bx, by, bw, bh, 2, 2)
+    G.setLineWidth(max(1.5, size / 9))
+    local r = bw * 0.32
+    local cx = x + size / 2
+    if shut then
+      G.arc("line", "open", cx, by, r, math.pi, 2 * math.pi)
+    else
+      G.arc("line", "open", cx + r * 0.9, by - r * 0.35, r, math.pi, 2 * math.pi)
+    end
+    G.setLineWidth(1)
+  end
+  -- A button in the PC footer; returns its width.
+  local function footButton(label, x, y, tone, hits, hit)
+    local bw = widthOf(label, 11) + 18
+    color(tone or C.raised)
+    G.rectangle("fill", x, y, bw, 22, 6, 6)
+    text(label, x + bw / 2, y + 4, C.text, 11, "center")
+    hit.x, hit.y, hit.w, hit.h = x, y, bw, 22
+    hits[#hits + 1] = hit
+    return bw
+  end
+
+  -- Returns the places that can be clicked: { page }, { back }, { slot }, { lock },
+  -- { openSort }, { sort = id }, { confirm }, { cancel }, { undo }.
   function UI.box(model, w, h)
     background(w, h)
     local pad, gap = 8, 4
@@ -1232,10 +1261,42 @@ return function(env)
     end
     local gw = (detail and wide) and floor(min(w * 0.46, 380)) or w
     local used = pager(gw - pad, pad - 2, model.box, model.boxes, hits)
-    text(fit(model.name, gw - pad * 2 - used - 60, 13), pad + 2, pad + 1, C.text, 13)
+    -- the padlock in front of the name locks and unlocks this box
+    padlock(pad, pad, 16, model.locked, model.locked and C.gold or C.faint)
+    hits[#hits + 1] = { x = pad - 2, y = pad - 3, w = 22, h = 22, lock = true }
+    text(fit(model.name, gw - pad * 2 - used - 82, 13), pad + 22, pad + 1, C.text, 13)
     text(model.count .. "/30", gw - pad - used - 4, pad + 3, C.muted, 11, "right")
-    local top = pad + 28
-    local cell = min((gw - pad * 2 - gap * 5) / 6, (h - top - pad - gap * 4) / 5)
+    local top, footH = pad + 28, 30
+    local bottom = h - footH
+
+    if model.sorts or model.confirm then
+      -- the sort choices, or the question before sorting, in place of the grid
+      local x, y = pad + 4, top + 2
+      if model.confirm then
+        text(fit(model.confirm.title, gw - pad * 2, 13), x, y, C.text, 13)
+        y = y + 24
+        text(fit(model.confirm.line, gw - pad * 2 - 8, 12), x, y, C.text, 12)
+        y = y + 20
+        y = y + para(model.confirm.note, x, y, gw - pad * 2 - 8, C.muted, 11, 3) + 8
+        local bw = footButton(T("SORT_GO"), x, y, C.accent, hits, { confirm = true })
+        footButton(T("CANCEL"), x + bw + 8, y, nil, hits, { cancel = true })
+      else
+        text(T("SORT_TITLE"), x, y, C.text, 13)
+        y = y + 22
+        local rowH = max(24, min(30, floor((bottom - y - 34) / #model.sorts)))
+        for _, sort in ipairs(model.sorts) do
+          card(x, y, gw - pad * 2 - 8, rowH - 4, C.card, 6)
+          text(fit(sort.label, gw - pad * 2 - 24, 12), x + 10, y + (rowH - 4) / 2 - 7, C.text, 12)
+          hits[#hits + 1] = { x = x, y = y, w = gw - pad * 2 - 8, h = rowH - 4, sort = sort.id }
+          y = y + rowH
+        end
+        para(model.sortNote, x, y + 2, gw - pad * 2 - 8, C.muted, 11, 2)
+        footButton(T("CANCEL"), x, bottom + 4, nil, hits, { cancel = true })
+      end
+      return hits
+    end
+
+    local cell = min((gw - pad * 2 - gap * 5) / 6, (bottom - top - gap * 5) / 5)
     cell = max(20, floor(cell))
     local ox = floor((gw - (cell * 6 + gap * 5)) / 2)
     for slot = 1, 30 do
@@ -1243,7 +1304,9 @@ return function(env)
       local y = top + floor((slot - 1) / 6) * (cell + gap)
       local entry = model.slots[slot]
       local chosen = model.selected == slot
-      card(x, y, cell, cell, entry and (chosen and mix(C.card, C.accent, 0.3) or C.card) or mix(C.card, C.bg, 0.55), 6)
+      local tone = entry and (chosen and mix(C.card, C.accent, 0.3) or C.card) or mix(C.card, C.bg, 0.55)
+      if model.locked then tone = mix(tone, C.gold, 0.08) end
+      card(x, y, cell, cell, tone, 6)
       if entry then
         sprite(entry.pic, x + 2, y + 2, cell - 4)
         if entry.shiny then star(x + cell - 7, y + 7, min(6, cell / 7)) end
@@ -1258,14 +1321,21 @@ return function(env)
       end
     end
     if model.count == 0 then text(T("BOX_EMPTY"), gw / 2, top + cell * 2.5, C.faint, 12, "center") end
+
+    -- footer: lock, sort, undo, and what just happened
+    local fy, fx = bottom + 4, pad
+    fx = fx + footButton(model.locked and T("UNLOCK_BOX") or T("LOCK_BOX"), fx, fy, model.locked and mix(C.raised, C.gold, 0.35) or nil, hits, { lock = true }) + 6
+    fx = fx + footButton(T("SORT"), fx, fy, nil, hits, { openSort = true }) + 6
+    if model.canUndo then fx = fx + footButton(T("UNDO"), fx, fy, nil, hits, { undo = true }) + 6 end
+    local message = model.flash or (not detail and model.count > 0 and T("BOX_HINT")) or nil
+    if message and gw - fx - pad > 40 then text(fit(message, gw - fx - pad, 11), fx + 4, fy + 4, model.flash and C.text or C.faint, 11) end
+
     if detail and wide then
       -- wide: the sheet beside the box
       G.push()
       G.translate(gw, 0)
       UI.sheet(detail, w - gw, h, detail.kindLabel)
       G.pop()
-    elseif not detail and model.count > 0 and top + cell * 5 + gap * 4 + 22 <= h then
-      text(T("BOX_HINT"), gw / 2, top + cell * 5 + gap * 4 + 6, C.faint, 11, "center")
     end
     return hits
   end
