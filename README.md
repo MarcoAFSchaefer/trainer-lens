@@ -62,9 +62,14 @@ Each language is a file in `trainer_lens/lang/` (`en.lua`, `es.lua`, `pt.lua`, `
 - [docs/PANELS.md](docs/PANELS.md): each panel and the game data behind it.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the files fit together, hooks and saved data.
 - [docs/TRANSLATING.md](docs/TRANSLATING.md): how the translations work and how to change them.
+- [docs/PUBLISHING.md](docs/PUBLISHING.md): releases and the Gen1Recomp mod index.
 - [CHANGELOG.md](CHANGELOG.md): version history.
 - [tests/README.md](tests/README.md): running the automated checks.
 
 ## History
 
 Until version 2.8.0 this mod was called PokePanels (id `poke_panels`).
+
+## License
+
+MIT (see LICENSE). The bundled Japanese font is under the SIL Open Font License (`fonts/OFL.txt`).

@@ -7,7 +7,8 @@
   "category": "UI",
   "profile": "content",
   "games": [
-    "gen3"
+    "firered",
+    "leafgreen"
   ],
   "game_version": "0.0.0-dev || >=0.3.93 <2.0.0",
   "affects_link": false,
@@ -18,8 +19,7 @@
   "conflicts": [],
   "permissions": [
     "engine_internals",
-    "network",
     "compute"
   ],
-  "description": "Extra desktop windows for FireRed, LeafGreen, Ruby, Sapphire and Emerald: Pokemon of the current area, your team, and the opponent's sheet in battle (HP, nature, ability, item, IVs, EVs, moves). On Windows it also remembers where you put the game's windows and brings them forward together."
+  "description": "Information panels for FireRed and LeafGreen: area Pokemon, party, opponent and your Pokemon sheets (IVs, EVs, stats chart), moves, item radar, one-click field tools with Auto Repel, trainer card, progress, area and region maps, Pokedex, bag, Day-Care, encounter counter, notices and a read-only PC viewer. Docks in Trainer Desk, or opens up to five desktop windows. English, Spanish, Portuguese and Japanese."
 }

@@ -4,7 +4,7 @@
 
 | File | Role |
 | --- | --- |
-| `manifest.json` | Mod id `trainer_lens`, API 3, Gen 3 games, optional dependency `trainer_desk`. |
+| `manifest.json` | Mod id `trainer_lens`, API 3, FireRed and LeafGreen, permissions `engine_internals` and `compute` (the window keeper thread), optional dependency `trainer_desk`. |
 | `main.lua` | Options, the models built from game state, click handling, Trainer Desk registration and window mode. |
 | `ui.lua` | Every view: given a model and a size, draws the panel. Knows nothing about the game. |
 | `windows.lua` | Window mode: one desktop window per panel. |

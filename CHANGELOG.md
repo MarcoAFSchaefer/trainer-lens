@@ -6,6 +6,9 @@
 - Japanese text drawn with a bundled Noto Sans JP subset.
 - The Pokédex sheet's "Evolves into", "Where to find it", "Pokédex entry" and "Base stats" headings no longer show as raw keys.
 - Level labels follow the language.
+- Drops the unused `network` permission; lists FireRed and LeafGreen as its games, with an up-to-date description.
+- Badge pictures are read only through the game's cache layer.
+- MIT license, release workflow and a ready mod index entry (docs/PUBLISHING.md).
 
 ## 2.9.0
 
