@@ -59,6 +59,7 @@ Each language is a file in `trainer_lens/lang/` (`en.lua`, `es.lua`, `pt.lua`, `
 
 ## Documentation
 
+- [docs/GUIDE.md](docs/GUIDE.md): player guide, every panel and setting.
 - [docs/PANELS.md](docs/PANELS.md): each panel and the game data behind it.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the files fit together, hooks and saved data.
 - [docs/TRANSLATING.md](docs/TRANSLATING.md): how the translations work and how to change them.
