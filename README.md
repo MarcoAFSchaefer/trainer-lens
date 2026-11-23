@@ -24,7 +24,7 @@ Panels read the game. The only ones that change anything do so when you click, t
 | Day-Care | The Four Island and Route 5 Day-Care boarders, their levels if taken back now, the cost, and a waiting egg. |
 | Counter | Wild encounters by species, encounters since the last shiny, and shinies seen. |
 | Notices | A short feed: a wild shiny, the VS Seeker charged, a Repel wearing off, a fainted party member, Day-Care news, and Trainer Pilot stopping. |
-| PC | The PC boxes as a grid; click a Pokémon for its full sheet. Lock boxes and sort the others: living dex (repeats side by side or at the end), species then level, or level up or down, with one step of undo. Nothing is ever deposited or withdrawn. |
+| PC | The PC boxes as a grid; click a Pokémon for its full sheet. Lock boxes and sort the others: living dex with gaps for missing species (repeats side by side or at the end), species then level, level up or down, or just remove gaps, with one step of undo. Slots show the Pokédex number. Nothing is ever deposited or withdrawn. |
 
 See [docs/PANELS.md](docs/PANELS.md) for where each panel reads its data.
 

@@ -1290,7 +1290,7 @@ return function(env)
           hits[#hits + 1] = { x = x, y = y, w = gw - pad * 2 - 8, h = rowH - 4, sort = sort.id }
           y = y + rowH
         end
-        para(model.sortNote, x, y + 2, gw - pad * 2 - 8, C.muted, 11, 2)
+        para(model.sortNote, x, y + 2, gw - pad * 2 - 8, C.muted, 11, 3)
         footButton(T("CANCEL"), x, bottom + 4, nil, hits, { cancel = true })
       end
       return hits
@@ -1311,6 +1311,7 @@ return function(env)
         sprite(entry.pic, x + 2, y + 2, cell - 4)
         if entry.shiny then star(x + cell - 7, y + 7, min(6, cell / 7)) end
         if cell >= 40 and entry.level then text(entry.level, x + cell - 4, y + cell - 14, C.muted, 10, "right") end
+        if cell >= 40 and entry.number then text(entry.number, x + 4, y + 3, C.faint, 9) end
         hits[#hits + 1] = { x = x, y = y, w = cell, h = cell, slot = slot }
       end
       if chosen then

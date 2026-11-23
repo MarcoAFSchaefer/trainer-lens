@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.12.0
+
+- PC panel: the living dex orders leave an empty slot for each missing species (up to the highest Pokédex number you have); if the unlocked boxes are too small for that, nothing moves.
+- PC panel: new order **Remove gaps**, which keeps the order and closes up empty slots.
+- PC panel: each slot and sheet shows the National Pokédex number.
+
 ## 2.11.0
 
 - PC panel: **Lock box** keeps a box out of sorting (kept per save; the game itself can still change it).

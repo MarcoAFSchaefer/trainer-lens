@@ -1411,10 +1411,11 @@ return function(mod)
   end
 
   -- The orders Sort offers. Eggs always go last; ties keep their old order.
-  local SORTS = { "dex_all", "dex_simple", "species_level", "level_up", "level_down" }
+  local SORTS = { "dex_all", "dex_simple", "species_level", "level_up", "level_down", "compact" }
   local SORT_LABELS = { dex_all = "SORT_DEX_ALL", dex_simple = "SORT_DEX_SIMPLE", species_level = "SORT_SPECIES",
-    level_up = "SORT_LV_UP", level_down = "SORT_LV_DOWN" }
+    level_up = "SORT_LV_UP", level_down = "SORT_LV_DOWN", compact = "SORT_COMPACT" }
   local function sortEntries(entries, order)
+    if order == "compact" then return end   -- the order they are in now, gaps taken out
     if order == "dex_simple" then
       -- the first of each species (highest level, then the one found first) keeps
       -- its place in the living dex; the repeats follow, in dex order too
@@ -1469,6 +1470,38 @@ return function(mod)
     return boxes, entries
   end
 
+  -- The slots in order, from the first unlocked box on: a Pokémon, or false for
+  -- a slot left empty. The living dex orders keep one empty slot for each
+  -- species missing below the highest Pokédex number there is.
+  local function placement(order, entries)
+    if order ~= "dex_all" and order ~= "dex_simple" then
+      local seq = {}
+      for i, e in ipairs(entries) do seq[i] = e.mon end
+      return seq
+    end
+    local groups, top, eggs, extras = {}, 0, {}, {}
+    for _, e in ipairs(entries) do
+      if e.egg then eggs[#eggs + 1] = e.mon
+      elseif order == "dex_simple" and e.extra == 1 then extras[#extras + 1] = e.mon
+      else
+        groups[e.dex] = groups[e.dex] or {}
+        table.insert(groups[e.dex], e.mon)
+        if e.dex > top then top = e.dex end
+      end
+    end
+    local seq = {}
+    for n = 1, top do
+      if groups[n] then
+        for _, mon in ipairs(groups[n]) do seq[#seq + 1] = mon end
+      else
+        seq[#seq + 1] = false
+      end
+    end
+    for _, mon in ipairs(extras) do seq[#seq + 1] = mon end
+    for _, mon in ipairs(eggs) do seq[#seq + 1] = mon end
+    return seq
+  end
+
   local function layoutOf(boxes)
     local storage, out = game.session.storage, {}
     for _, b in ipairs(boxes) do
@@ -1502,13 +1535,15 @@ return function(mod)
     local boxes, entries = sortPlan(order)
     if #boxes == 0 then return flash("ALL_LOCKED") end
     if #entries == 0 then return flash("SORT_NONE") end
+    local seq = placement(order, entries)
+    if #seq > #boxes * 30 then return flash("SORT_NO_ROOM", #seq, #boxes * 30) end
     local before = layoutOf(boxes)
     local storage, n = game.session.storage, 0
     for _, b in ipairs(boxes) do
       storage.boxes[b].mons = storage.boxes[b].mons or {}
       for slot = 1, 30 do
         n = n + 1
-        storage.boxes[b].mons[slot] = entries[n] and entries[n].mon or nil
+        storage.boxes[b].mons[slot] = seq[n] or nil
       end
     end
     boxState.undo = { before = before, after = layoutOf(boxes) }
@@ -1559,8 +1594,11 @@ return function(mod)
       if type(mon) == "table" then
         local egg = try(h.P.isEgg, mon) == true
         model.count = model.count + 1
+        local species = try(h.P.speciesOf, mon)
+        local number = not egg and (tonumber((try(h.P.national, species))) or tonumber(species)) or nil
         model.slots[slot] = { pic = try(h.P.monIcon, mon), shiny = not egg and try(h.P.isShiny, mon) == true,
-          level = not egg and mon.level and (T("LV") .. mon.level) or nil }
+          level = not egg and mon.level and (T("LV") .. mon.level) or nil,
+          number = number and T("DEX_NO"):format(number) or nil }
       end
     end
     local chosen = boxState.selected and mons[boxState.selected]
@@ -1573,7 +1611,9 @@ return function(mod)
         local detail = sheetModel(view, pokemon)
         detail.showEvs, detail.evTotal = true, 0
         for _, row in ipairs(detail.rows) do detail.evTotal = detail.evTotal + (row.ev or 0) end
-        detail.kindLabel = model.name .. "  ·  " .. boxState.selected
+        local species = try(h.P.speciesOf, chosen)
+        local number = tonumber((try(h.P.national, species))) or tonumber(species)
+        detail.kindLabel = model.name .. "  ·  " .. boxState.selected .. (number and ("  ·  " .. T("DEX_NO"):format(number)) or "")
         model.detail = detail
       end
     end

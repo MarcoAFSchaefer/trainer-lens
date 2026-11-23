@@ -592,6 +592,7 @@ end
       game.session.storage.boxes[3].mons = { [4] = legend }
       game.session.storage.boxes[1].mons = { [3] = mon(16, 40, { level = 3 }), [9] = mon(1, 40, { level = 5 }),
         [10] = mon(16, 40, { level = 30 }), [11] = { species = 25, isEgg = true, ivs = {}, evs = {} } }
+      for b = 4, 6 do game.session.storage.boxes[b] = { name = "BOX " .. b, mons = {} } end
       local function paintBox(w2, h2)
         local c = G.newCanvas(w2 or 400, h2 or 360)
         G.setCanvas(c); G.clear(0, 0, 0, 1); G.push("all"); G.origin(); local ok, err = pcall(pp.exports.debugPaint, "box", w2 or 400, h2 or 360); G.pop(); G.setCanvas()
@@ -600,7 +601,7 @@ end
       end
       local function order()
         local out = {}
-        for b = 1, 3 do
+        for b = 1, #game.session.storage.boxes do
           for slot = 1, 30 do
             local m = game.session.storage.boxes[b].mons[slot]
             if m then out[#out + 1] = b .. ":" .. slot .. ":" .. (m.isEgg and "egg" or (m.species .. "L" .. m.level)) end
@@ -611,7 +612,7 @@ end
       local original = order()
       battle.active = false
       -- go to box 3 and lock it
-      for _ = 1, 3 do paintBox(); pp.exports.debugBoxPress("page", 1) end
+      paintBox(); pp.exports.debugBoxPress("page", 1)   -- box 2 -> box 3
       paintBox(); check(pp.exports.debugBoxPress("lock"), "the lock button is there")
       paintBox()
       check((pp.cache_["box_locks/v1"] or ""):find("=3$") ~= nil, "the lock is saved: " .. tostring(pp.cache_["box_locks/v1"]))
@@ -626,13 +627,23 @@ end
       local cc = paintBox(); local fc = io.open(OUT .. "/panels-box-confirm.png", "wb"); fc:write(cc:newImageData():encode("png"):getString()); fc:close()
       pp.exports.debugBoxPress("confirm")
       local sorted = order()
-      check(sorted == "1:1:1L5 1:2:4L21 1:3:16L30 1:4:16L22 1:5:16L3 1:6:19L28 1:7:58L33 1:8:72L50 1:9:129L25 1:10:egg 3:4:150L70",
-        "living dex, repeats side by side, eggs last, locked box untouched: " .. sorted)
+      check(sorted == "1:1:1L5 1:4:4L21 1:16:16L30 1:17:16L22 1:18:16L3 1:21:19L28 2:30:58L33 3:4:150L70 4:14:72L50 6:11:129L25 6:12:egg",
+        "living dex with gaps, repeats side by side, eggs last, locked box skipped and untouched: " .. sorted)
+      local cg = paintBox(); local fg = io.open(OUT .. "/panels-box-dex.png", "wb"); fg:write(cg:newImageData():encode("png"):getString()); fg:close()
       paintBox(); check(pp.exports.debugBoxPress("undo"), "Undo is offered after sorting")
       check(order() == original, "Undo puts the PC back")
       paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "dex_simple"); paintBox(); pp.exports.debugBoxPress("confirm")
+      check(order() == "1:1:1L5 1:4:4L21 1:16:16L30 1:19:19L28 2:28:58L33 3:4:150L70 4:12:72L50 6:9:129L25 6:10:16L22 6:11:16L3 6:12:egg",
+        "living dex with gaps, repeats at the end: " .. order())
+      paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "compact"); paintBox(); pp.exports.debugBoxPress("confirm")
       check(order() == "1:1:1L5 1:2:4L21 1:3:16L30 1:4:19L28 1:5:58L33 1:6:72L50 1:7:129L25 1:8:16L22 1:9:16L3 1:10:egg 3:4:150L70",
-        "living dex, repeats at the end: " .. order())
+        "remove gaps keeps the order: " .. order())
+      -- not enough room for the gaps: nothing moves
+      local spare = { table.remove(game.session.storage.boxes), table.remove(game.session.storage.boxes), table.remove(game.session.storage.boxes) }
+      local packed = order()
+      paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "dex_all"); paintBox(); pp.exports.debugBoxPress("confirm")
+      check(order() == packed, "a living dex that does not fit changes nothing")
+      for i = 3, 1, -1 do table.insert(game.session.storage.boxes, spare[i]) end
       paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "level_down"); paintBox(); pp.exports.debugBoxPress("confirm")
       check(order():sub(1, 18) == "1:1:72L50 1:2:58L3", "level, high to low: " .. order())
       paintBox(); pp.exports.debugBoxPress("openSort"); paintBox(); pp.exports.debugBoxPress("sort", "level_up"); paintBox(); pp.exports.debugBoxPress("confirm")
@@ -644,8 +655,7 @@ end
       paintBox(); check(not pp.exports.debugBoxPress("undo"), "no Undo once the PC changed")
       local cf = paintBox(); local ff = io.open(OUT .. "/panels-box-sorted.png", "wb"); ff:write(cf:newImageData():encode("png"):getString()); ff:close()
       -- unlock box 3 again for the next tests
-      for _ = 1, 3 do paintBox(); pp.exports.debugBoxPress("page", 1) end
-      paintBox(); pp.exports.debugBoxPress("lock"); paintBox()
+      paintBox(); pp.exports.debugBoxPress("lock"); paintBox()   -- still on box 3
       battle.active = true
       game.session.storage = nil
     end

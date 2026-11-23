@@ -33,7 +33,7 @@ Every panel has an id of the form `trainer_lens.<kind>` in Trainer Desk. This pa
 ## PC: locks and sorting
 
 - **Locks** are kept in the `box_locks/v1` cache key, one line per save (`<trainer id>:<name>=1,4,7`). They only tell Sort which boxes to skip.
-- **Sort** (`runSort`) runs only when `WorldAPI:availableFieldActions()` gives no reason to refuse and no battle is active, which keeps it away from the PC screen, menus and scripts. It gathers the Pokémon of the unlocked boxes, orders them (`sortEntries`: eggs last, Pokédex number from `pokemon.national`, level, then the old order), and writes them back slot by slot. Only table references move between `mons` slots; no Pokémon is created, copied, healed or changed.
+- **Sort** (`runSort`) runs only when `WorldAPI:availableFieldActions()` gives no reason to refuse and no battle is active, which keeps it away from the PC screen, menus and scripts. It gathers the Pokémon of the unlocked boxes, orders them (`sortEntries`: eggs last, Pokédex number from `pokemon.national`, level, then the old order), lays them out (`placement`: the living dex orders keep an empty slot for every missing number up to the highest one; if that does not fit, nothing moves), and writes them back slot by slot. Only table references move between `mons` slots; no Pokémon is created, copied, healed or changed.
 - **Undo** keeps the layout from before and after the sort. It puts the old one back only if the boxes still hold exactly the sorted layout; any other change since drops it.
 
 ## Area Pokémon

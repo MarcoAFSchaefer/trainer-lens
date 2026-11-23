@@ -73,13 +73,14 @@ Your PC boxes as a grid. Use **<** **>** or the mouse wheel to change box, and c
 
 | Order | Result |
 | --- | --- |
-| Living dex, repeats side by side | National Pokédex order; several of one species sit together. |
-| Living dex, repeats at the end | One of each species in Pokédex order (the highest level one), then all the repeats, also in Pokédex order. |
+| Living dex, repeats side by side | National Pokédex order, leaving one empty slot for each species you are missing; several of one species sit together. |
+| Living dex, repeats at the end | One of each species in Pokédex order (the highest level one), with an empty slot for each missing species, then all the repeats, also in Pokédex order. |
 | Species, then level | Pokédex order; within a species, lowest level first. |
 | Level, low to high | By level; same level in Pokédex order. |
 | Level, high to low | By level, highest first. |
+| Remove gaps | Keeps the order they are in and closes up the empty slots. |
 
-Eggs always go last. A question shows how many Pokémon and boxes will change before anything moves. Sorting only works in the field, with no menu open and no battle. **Undo** puts the boxes back as they were, as long as nothing else in the PC has changed since. The new order is in your game at once and is kept when you save; nothing is ever deposited, withdrawn or released.
+Eggs always go last. The living dex orders need room for their gaps (up to the highest Pokédex number you have); if the unlocked boxes are too few, nothing moves and the panel says how many slots are missing. Each Pokémon shows its National Pokédex number in the corner of its slot and on its sheet. A question shows how many Pokémon and boxes will change before anything moves. Sorting only works in the field, with no menu open and no battle. **Undo** puts the boxes back as they were, as long as nothing else in the PC has changed since. The new order is in your game at once and is kept when you save; nothing is ever deposited, withdrawn or released.
 
 ## Settings
 
