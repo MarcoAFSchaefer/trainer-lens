@@ -46,15 +46,22 @@ Trainer Desk is optional but recommended.
 | Panel windows | 3 | How many desktop windows to open in window mode (0 to 5). |
 | Panel 1 to 5 | area, party, opponent, radar, my Pokémon | Which panel each desktop window shows. |
 | Opponent in battle | on | In window mode, panel 1 shows the opponent during a battle unless another window already does. |
-| Language | Português | Language of the panels (Português or English). |
+| Language | English | Language of the panels: ENGLISH, ESPANOL, PORTUGUES or JAPANESE. |
 | Remember windows | on | Windows only: put the panel windows back where you left them. |
 | Remember game window | on | Windows only: also remember the main game window. |
 | Bring windows forward | on | Windows only: when the game gains focus, bring its other windows forward too. |
+
+## Languages
+
+The panel text is in English, Spanish, Portuguese and Japanese: choose one with the **Language** option in the mod's settings. Names that come from the game itself (Pokémon, moves, items, places) stay in the language of your game.
+
+Each language is a file in `trainer_lens/lang/` (`en.lua`, `es.lua`, `pt.lua`, `ja.lua`); English is the reference, and a text missing from another language shows in English. Japanese text is drawn with a cut-down copy of Noto Sans JP in `trainer_lens/fonts/` (SIL Open Font License, `fonts/OFL.txt`). See [docs/TRANSLATING.md](docs/TRANSLATING.md) to fix or add a translation.
 
 ## Documentation
 
 - [docs/PANELS.md](docs/PANELS.md): each panel and the game data behind it.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the files fit together, hooks and saved data.
+- [docs/TRANSLATING.md](docs/TRANSLATING.md): how the translations work and how to change them.
 - [CHANGELOG.md](CHANGELOG.md): version history.
 - [tests/README.md](tests/README.md): running the automated checks.
 

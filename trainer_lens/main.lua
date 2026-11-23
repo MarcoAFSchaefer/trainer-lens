@@ -36,8 +36,9 @@ return function(mod)
       choices = { { "AREA POKEMON", "wild" }, { "PARTY", "party" }, { "OPPONENT", "enemy" }, { "ITEM RADAR", "radar" }, { "MY POKEMON", "ally" } } },
     { key = "battle_sheet", label = "OPPONENT IN BATTLE", type = "toggle", default = true,
       description = "In battle, panel 1 shows the opponent unless another panel already does." },
-    { key = "language", label = "LANGUAGE", type = "choice", default = "pt",
-      choices = { { "PORTUGUES", "pt" }, { "ENGLISH", "en" } } },
+    { key = "language", label = "LANGUAGE", type = "choice", default = "en",
+      choices = { { "ENGLISH", "en" }, { "ESPANOL", "es" }, { "PORTUGUES", "pt" }, { "JAPANESE", "ja" } },
+      description = "Language of the panels. Names that come from the game (Pokemon, moves, items) stay in the game's language." },
     { key = "remember_windows", label = "REMEMBER WINDOWS", type = "toggle", default = true,
       description = "Windows only. Remember where you put the panel and second-screen windows and put them back when they open." },
     { key = "remember_game_window", label = "REMEMBER GAME WINDOW", type = "toggle", default = true,
@@ -50,88 +51,13 @@ return function(mod)
   ---------------------------------------------------------------------------
   -- Text
   ---------------------------------------------------------------------------
-  local TEXT = {
-    pt = { OPPONENT = "OPONENTE", AREA = "POKéMON DA ÁREA", PARTY = "EQUIPE", WILD = "Selvagem", TRAINER = "Treinador",
-      NATURE = "Natureza", ABILITY = "Habilidade", ITEM = "Item", NO_ITEM = "Sem item", STAT = "Stat",
-      HP = "PS", ATK = "Ataque", DEF = "Defesa", SPA = "Atq. Esp", SPD = "Def. Esp", SPE = "Velocidade",
-      STATS = "Atributos", NO_TOOLS = "Nada para usar aqui agora", BUSY = "O jogo está ocupado",
-      TOOLS_HINT = "Clique para usar", BIKE = "Bicicleta", BIKE_OFF = "Guardar bicicleta", CHARGE = "carga",
-      CHARGED = "carregado", REPEL_ON = "Repel ativo: %d passos", NOT_HERE = "Não dá para usar aqui agora",
-      IN_BATTLE_TOOLS = "Indisponível durante a batalha", USED = "Usado: %s",
-      AUTO_REPEL = "Auto Repel", AUTO_ON = "ligado", AUTO_OFF = "desligado",
-      N_AUTO = "Auto Repel usou %s", N_AUTO_LEFT = "restam %d", N_AUTO_OUT = "Auto Repel: acabaram os repels",
-      MONEY = "Dinheiro", TIME = "Tempo de jogo", BADGES = "Insígnias", POKEDEX = "Pokédex", SEEN = "Vistos", CAUGHT = "Capturados",
-      NATIONAL = "Nacional", ITEMS = "Itens", INSIDE = "Dentro de %s  ·  perto de %s", NO_MAP = "Sem mapa para este lugar",
-      NO_REGION = "Ande por uma rota ou cidade para montar o mapa",
-      BACK = "Voltar", HERE_LIST = "Nesta área", BOX_EMPTY = "Caixa vazia", NO_PC = "Nenhum Pokémon no PC ainda",
-      BOX_HINT = "Toque num Pokémon para ver a ficha",
-      DEX_SUMMARY = "Vistos %d   Capturados %d   de %d", ONLY_MISSING = "Só os que faltam", ALL = "Todos",
-      HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "Nenhum aviso ainda",
-      N_SHINY = "SHINY selvagem!", N_SEEKER = "VS Seeker carregado", N_REPEL = "O Repel acabou", N_EGG = "Há um ovo no Day-Care",
-      N_DAYCARE = "Day-Care: %s subiu para o nível %d", N_BOT = "Trainer Pilot parou", N_FAINT = "%s desmaiou",
-      EMPTY = "Vazio", POWER = "Poder", ACCURACY = "Precisão", PHYSICAL = "Físico", SPECIAL = "Especial", STATUS_MOVE = "Status",
-      POCKETS = { ITEMS = "Itens", KEY_ITEMS = "Itens-chave", POKE_BALLS = "Poké Balls", TM_CASE = "TMs", BERRY_POUCH = "Berries" },
-      DAYCARE_EMPTY = "Nenhum Pokémon deixado aqui", EGG_READY = "Há um ovo esperando!", DAYCARE = "Day-Care (Four Island)",
-      DAYCARE_R5 = "Day-Care da Rota 5", STEPS_N = "%d passos", LEVELS = "Nv %d  >  Nv %d  (+%d)", COST = "$ %d para retirar",
-      ENCOUNTERS = "Encontros", SINCE_SHINY = "Desde o último shiny", SHINIES = "Shinies vistos", RESET = "Zerar",
-      LUCK = "Chance de shiny até aqui: %s", MOVES_OF = "Golpes de %s", HERE_NOW = "você está aqui", AREAS = "Áreas completas: %d de %d",
-      STAT_NAMES = { [5] = "Passos", [7] = "Batalhas", [8] = "Selvagens", [9] = "Treinadores", [11] = "Capturas",
-        [12] = "Pescarias", [13] = "Ovos chocados", [14] = "Evoluções", [15] = "Curas no Centro" }, SHORT = { HP = "PS", ATK = "Atq", DEF = "Def", SPA = "At.Esp", SPD = "Df.Esp", SPE = "Vel" },
-      NO_BATTLE = "Sem batalha", NO_WILD = "Nenhum Pokémon selvagem aqui", NO_GAME = "Aguardando o jogo",
-      EGG = "Ovo", ERROR = "Erro no painel", SURF = "Surfar", OLD = "Vara velha", GOOD = "Vara boa",
-      SUPER = "Super vara", ROCK = "Pedras", SHINY = "SHINY", RADAR = "RADAR DE ITENS", VISIBLE = "Visíveis",
-      HIDDEN = "Ocultos", HERE = "aqui", NO_ITEMS = "Nenhum item neste mapa", ALL_FOUND = "Tudo coletado aqui",
-      NO_DATA = "Sem dados deste mapa", LEFT = "restam", DIRS = { "N", "NE", "L", "SE", "S", "SO", "O", "NO" },
-      TABS = { wild = "Pokémon da área", party = "Equipe", enemy = "Oponente", radar = "Radar de itens", ally = "Meu Pokémon", tools = "Ferramentas", trainer = "Treinador", progress = "Progresso", map = "Mapa da área", region = "Mapa da região",
-        bag = "Mochila", moves = "Golpes", daycare = "Day-Care", counter = "Contador", dex = "Pokédex", notices = "Avisos", box = "PC" },
-      ALLY = "MEU POKéMON", IN_BATTLE = "Em batalha", SUMMARY = "Resumo", BOX = "Box", MENU = "Equipe", LEAD = "Líder",
-      HELD = "Na mão", NO_PARTY = "Equipe vazia",
-      TYPES = { NORMAL = "NORMAL", FIGHTING = "LUTADOR", FLYING = "VOADOR", POISON = "VENENO", GROUND = "TERRA",
-        ROCK = "PEDRA", BUG = "INSETO", GHOST = "FANTASMA", STEEL = "AÇO", FIRE = "FOGO", WATER = "ÁGUA",
-        GRASS = "PLANTA", ELECTRIC = "ELÉTRICO", PSYCHIC = "PSÍQUICO", ICE = "GELO", DRAGON = "DRAGÃO", DARK = "SOMBRIO" } },
-    en = { OPPONENT = "OPPONENT", AREA = "AREA POKéMON", PARTY = "PARTY", WILD = "Wild", TRAINER = "Trainer",
-      NATURE = "Nature", ABILITY = "Ability", ITEM = "Item", NO_ITEM = "No item", STAT = "Stat",
-      HP = "HP", ATK = "Attack", DEF = "Defense", SPA = "Sp. Atk", SPD = "Sp. Def", SPE = "Speed",
-      STATS = "Stats", NO_TOOLS = "Nothing to use here right now", BUSY = "The game is busy",
-      TOOLS_HINT = "Click to use", BIKE = "Bicycle", BIKE_OFF = "Put the bicycle away", CHARGE = "charge",
-      CHARGED = "charged", REPEL_ON = "Repel active: %d steps", NOT_HERE = "It cannot be used here right now",
-      IN_BATTLE_TOOLS = "Not available in battle", USED = "Used: %s",
-      AUTO_REPEL = "Auto Repel", AUTO_ON = "on", AUTO_OFF = "off",
-      N_AUTO = "Auto Repel used %s", N_AUTO_LEFT = "%d left", N_AUTO_OUT = "Auto Repel: no repels left",
-      MONEY = "Money", TIME = "Play time", BADGES = "Badges", POKEDEX = "Pokédex", SEEN = "Seen", CAUGHT = "Caught",
-      NATIONAL = "National", ITEMS = "Items", INSIDE = "Inside %s  ·  near %s", NO_MAP = "No map for this place",
-      NO_REGION = "Walk on a route or a town to build the map",
-      BACK = "Back", HERE_LIST = "In this area", BOX_EMPTY = "Empty box", NO_PC = "No Pokémon in the PC yet",
-      BOX_HINT = "Touch a Pokémon to see its sheet",
-      DEX_SUMMARY = "Seen %d   Caught %d   of %d", ONLY_MISSING = "Only the missing", ALL = "All",
-      HEIGHT_WEIGHT = "%s  %s", NO_NOTICES = "No notices yet",
-      N_SHINY = "Wild SHINY!", N_SEEKER = "VS Seeker charged", N_REPEL = "The Repel wore off", N_EGG = "An egg is waiting at the Day-Care",
-      N_DAYCARE = "Day-Care: %s grew to level %d", N_BOT = "Trainer Pilot stopped", N_FAINT = "%s fainted",
-      EMPTY = "Empty", POWER = "Power", ACCURACY = "Accuracy", PHYSICAL = "Physical", SPECIAL = "Special", STATUS_MOVE = "Status",
-      POCKETS = { ITEMS = "Items", KEY_ITEMS = "Key items", POKE_BALLS = "Poké Balls", TM_CASE = "TMs", BERRY_POUCH = "Berries" },
-      DAYCARE_EMPTY = "No Pokémon left here", EGG_READY = "An egg is waiting!", DAYCARE = "Day-Care (Four Island)",
-      DAYCARE_R5 = "Route 5 Day-Care", STEPS_N = "%d steps", LEVELS = "Lv %d  >  Lv %d  (+%d)", COST = "$ %d to take back",
-      ENCOUNTERS = "Encounters", SINCE_SHINY = "Since the last shiny", SHINIES = "Shinies seen", RESET = "Reset",
-      LUCK = "Shiny chance so far: %s", MOVES_OF = "Moves of %s", HERE_NOW = "you are here", AREAS = "Areas complete: %d of %d",
-      STAT_NAMES = { [5] = "Steps", [7] = "Battles", [8] = "Wild", [9] = "Trainers", [11] = "Captures",
-        [12] = "Fished", [13] = "Eggs hatched", [14] = "Evolutions", [15] = "Center heals" }, SHORT = { HP = "HP", ATK = "Atk", DEF = "Def", SPA = "SpA", SPD = "SpD", SPE = "Spe" },
-      NO_BATTLE = "No battle", NO_WILD = "No wild Pokémon here", NO_GAME = "Waiting for the game",
-      EGG = "Egg", ERROR = "Panel error", SURF = "Surf", OLD = "Old Rod", GOOD = "Good Rod",
-      SUPER = "Super Rod", ROCK = "Rocks", SHINY = "SHINY", RADAR = "ITEM RADAR", VISIBLE = "Visible",
-      HIDDEN = "Hidden", HERE = "here", NO_ITEMS = "No items on this map", ALL_FOUND = "Everything here is collected",
-      NO_DATA = "No data for this map", LEFT = "left", DIRS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }, TYPES = {},
-      TABS = { wild = "Area Pokémon", party = "Party", enemy = "Opponent", radar = "Item radar", ally = "My Pokémon", tools = "Tools", trainer = "Trainer", progress = "Progress", map = "Area map", region = "Region map",
-        bag = "Bag", moves = "Moves", daycare = "Day-Care", counter = "Counter", dex = "Pokédex", notices = "Notices", box = "PC" },
-      ALLY = "MY POKéMON", IN_BATTLE = "In battle", SUMMARY = "Summary", BOX = "Box", MENU = "Party", LEAD = "Lead",
-      HELD = "Held", NO_PARTY = "Empty party" },
-  }
-  local function T(key)
-    local lang = TEXT[option("language")] or TEXT.pt
-    return lang[key] or TEXT.en[key] or key
-  end
+  -- Each language lives in lang/<code>.lua; i18n.lua picks the chosen one and
+  -- makes fonts that can also draw Japanese.
+  local I18n = assert(load(assert(mod:read("i18n.lua")), "@trainer_lens/i18n.lua"))()(mod, function() return option("language") end)
+  local T = I18n.T
   local function typeLabel(id)
-    local lang = TEXT[option("language")] or TEXT.pt
-    return lang.TYPES[id] or id or "???"
+    local types = T("TYPES")
+    return type(types) == "table" and types[id] or id or "???"
   end
 
   -- Game text can carry control tags and symbols the font lacks.
@@ -154,7 +80,7 @@ return function(mod)
   -- Drawing: views live in ui.lua and draw into whatever room they are given
   ---------------------------------------------------------------------------
   local W, H = 480, 432       -- a view's size when nobody says how much room it has
-  local UI = load_("ui.lua", { T = T, typeLabel = typeLabel })
+  local UI = load_("ui.lua", { T = T, typeLabel = typeLabel, font = I18n.font })
 
 
   ---------------------------------------------------------------------------
@@ -208,7 +134,7 @@ return function(mod)
     local h, rows = host(), {}
     for index, mon in ipairs(game.session.party or {}) do
       local row = monBasics(mon)
-      row.levelText, row.hpText = "L" .. row.level, row.hp .. "/" .. row.maxHp
+      row.levelText, row.hpText = T("LV") .. row.level, row.hp .. "/" .. row.maxHp
       row.pic = try(h.P.monIcon, mon)
       rows[index] = row
     end
@@ -225,7 +151,7 @@ return function(mod)
     local h = host()
     if pokemon.hp > 0 and pokemon.status == "FNT" then pokemon.status = nil end
     if pokemon.hp <= 0 then pokemon.status = "FNT" end
-    pokemon.levelText, pokemon.hpText = "L" .. pokemon.level, pokemon.hp .. "/" .. pokemon.maxHp
+    pokemon.levelText, pokemon.hpText = T("LV") .. pokemon.level, pokemon.hp .. "/" .. pokemon.maxHp
     local types = try(h.P.types, pokemon.species) or {}
     pokemon.type = h.typeName[types[1]]
     pokemon.type2 = h.typeName[types[2]] or pokemon.type
@@ -465,7 +391,7 @@ return function(mod)
       row.name = nameCase(try(h.P.name, row.species) or "?")
       row.caught = try(h.Dex.isCaught, game.session.dex, row.species) == true
       local low, high = tonumber(row.minLevel), tonumber(row.maxLevel)
-      row.levelText = low and (high and high ~= low and ("L%d-%d"):format(low, high) or ("L%d"):format(low)) or "L?"
+      row.levelText = T("LV") .. (low and (high and high ~= low and ("%d-%d"):format(low, high) or tostring(low)) or "?")
       row.chanceText = ("%d%%"):format(floor(row.chance + 0.5))
       row.pic = try(h.P.icon, row.species)
     end
@@ -1460,7 +1386,7 @@ return function(mod)
         local egg = try(h.P.isEgg, mon) == true
         model.count = model.count + 1
         model.slots[slot] = { pic = try(h.P.monIcon, mon), shiny = not egg and try(h.P.isShiny, mon) == true,
-          level = not egg and mon.level and ("L" .. mon.level) or nil }
+          level = not egg and mon.level and (T("LV") .. mon.level) or nil }
       end
     end
     local chosen = boxState.selected and mons[boxState.selected]

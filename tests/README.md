@@ -17,6 +17,8 @@ xvfb-run -a -s "-screen 0 1280x800x24" love tests
 | `PP_MOD` | Path to the `trainer_lens` mod folder. |
 | `TEST_OUT` | Where screenshots of the panels are written (default `/tmp/kg_out`). |
 
+Set `TEST_LANG` to `en`, `es`, `pt` or `ja` to run the checks with that language and get the screenshots in it (default `en`).
+
 The run ends with `ALL DOCK CHECKS PASSED`; a failing check prints `CHECK FAILED` with the reason and stops. `panels-2.0.png` in `TEST_OUT` is a contact sheet of every panel, useful to look at after a visual change.
 
 The stand-in has no real game art: sprites, tiles, the Town Map and badges are replaced by simple test pictures.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.10.0
+
+- Panels in English, Spanish, Portuguese and Japanese (Language option; English by default). Type names and labels follow the language; game names stay in the game's language.
+- Japanese text drawn with a bundled Noto Sans JP subset.
+- The Pokédex sheet's "Evolves into", "Where to find it", "Pokédex entry" and "Base stats" headings no longer show as raw keys.
+- Level labels follow the language.
+
 ## 2.9.0
 
 - Renamed from PokePanels to Trainer Lens; mod id `poke_panels` becomes `trainer_lens`. Panel ids become `trainer_lens.<kind>`.

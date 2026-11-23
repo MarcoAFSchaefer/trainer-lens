@@ -5,9 +5,12 @@
 | File | Role |
 | --- | --- |
 | `manifest.json` | Mod id `trainer_lens`, API 3, Gen 3 games, optional dependency `trainer_desk`. |
-| `main.lua` | Options, text in Portuguese and English, the models built from game state, click handling, Trainer Desk registration and window mode. |
+| `main.lua` | Options, the models built from game state, click handling, Trainer Desk registration and window mode. |
 | `ui.lua` | Every view: given a model and a size, draws the panel. Knows nothing about the game. |
 | `windows.lua` | Window mode: one desktop window per panel. |
+| `i18n.lua` | Text in the chosen language (`T`, `F`) and fonts that can draw Japanese (`font`). The same file in all three Trainer mods. |
+| `lang/*.lua` | One table of texts per language: `en` (the reference), `es`, `pt`, `ja`. |
+| `fonts/` | `NotoSansJP-subset.ttf` (kana and the characters these mods use) and its license, `OFL.txt`. |
 | `wm_worker.lua` | Windows only: a thread that remembers and restores the game's window positions. |
 
 ## Models and views

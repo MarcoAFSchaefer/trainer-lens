@@ -116,7 +116,9 @@ end
     local read = reader(dir)
     local m = { id = id, options_ = {}, hooks_ = {}, events_ = {}, exports = {}, cache_ = cache or {} }
     m.read = function(_, n) return read(n) end
-    m.options = { define = function(_, s) m.schema = s; for _, row in ipairs(s) do if m.options_[row.key] == nil then m.options_[row.key] = row.default end end end,
+    m.options = { define = function(_, s) m.schema = s; for _, row in ipairs(s) do if m.options_[row.key] == nil then m.options_[row.key] = row.default end end
+      -- TEST_LANG picks the panels' language (en by default)
+      if os.getenv("TEST_LANG") then m.options_.language = os.getenv("TEST_LANG") end end,
       get = function(_, k) return m.options_[k] end, set = function(_, k, v) m.options_[k] = v end }
     m.hooks = { wrap = function(_, n, f, p) m.hooks_[n] = f end }
     m.events = { on = function(_, n, f) m.events_[n] = f end }
@@ -292,7 +294,12 @@ end
     check(#logs == 0, "no warnings from the my-Pokémon panel")
   end
   ---------------------------------------------------------------- 0.2: close, reopen, own window, menu
+  -- measured like the dock does: the default face with the Japanese fallback
   local font12 = G.newFont(12)
+  pcall(function()
+    local bytes = reader(os.getenv("DOCK_MOD"))("fonts/NotoSansJP-subset.ttf")
+    font12:setFallbacks(G.newFont(love.filesystem.newFileData(bytes, "ja.ttf"), 12))
+  end)
   local function titleOf(id) for _, p in ipairs(api.panels()) do if p.id == id then return p.title end end end
   local function stateOf(id) for _, p in ipairs(api.panels()) do if p.id == id then return p.state end end end
   local function tabRect(id)

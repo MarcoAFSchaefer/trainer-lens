@@ -1,17 +1,25 @@
 {
   "id": "trainer_lens",
   "name": "Trainer Lens",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "api": 3,
   "entry": "main.lua",
   "category": "UI",
   "profile": "content",
-  "games": ["gen3"],
+  "games": [
+    "gen3"
+  ],
   "game_version": "0.0.0-dev || >=0.3.93 <2.0.0",
   "affects_link": false,
   "dependencies": [],
-  "optional_dependencies": ["trainer_desk"],
+  "optional_dependencies": [
+    "trainer_desk"
+  ],
   "conflicts": [],
-  "permissions": ["engine_internals", "network", "compute"],
+  "permissions": [
+    "engine_internals",
+    "network",
+    "compute"
+  ],
   "description": "Extra desktop windows for FireRed, LeafGreen, Ruby, Sapphire and Emerald: Pokemon of the current area, your team, and the opponent's sheet in battle (HP, nature, ability, item, IVs, EVs, moves). On Windows it also remembers where you put the game's windows and brings them forward together."
 }

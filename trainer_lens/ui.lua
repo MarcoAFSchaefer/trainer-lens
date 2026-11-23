@@ -38,7 +38,7 @@ return function(env)
   local fonts = {}
   local function font(size)
     size = max(8, floor(size))
-    if not fonts[size] then fonts[size] = G.newFont(size) end
+    if not fonts[size] then fonts[size] = env.font and env.font(size) or G.newFont(size) end
     return fonts[size]
   end
   local function color(c, a) G.setColor(c[1], c[2], c[3], a or 1) end
