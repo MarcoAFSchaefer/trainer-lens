@@ -694,48 +694,84 @@ return function(mod)
   ---------------------------------------------------------------------------
   local BADGE_NAMES = { "Boulder", "Cascade", "Thunder", "Rainbow", "Soul", "Marsh", "Volcano", "Earth" }
   local STAT_ORDER = { 5, 7, 8, 9, 11, 12, 13, 14, 15 }
-  -- Badge pictures: the mod's own medals, drawn here (a disc in the colour of
-  -- the gym's type with the badge's number). Nothing is read from the game's
-  -- imported art, so the mod ships and references no ROM-derived picture.
-  local BADGE_COLORS = { { .62, .60, .56 }, { .27, .56, .92 }, { .96, .80, .20 }, { .36, .72, .36 },
-    { .74, .42, .82 }, { .95, .52, .62 }, { .93, .42, .20 }, { .72, .56, .30 } }
-  local BADGE_DIGITS = { "010110010010111", "111001111100111", "111001111001111", "101101111001001",
-    "111100111001111", "111100111101111", "111001010010010", "111101111101111" }
-  local badgePics
-  local function badgeSheet()
-    if badgePics ~= nil then return badgePics or nil end
-    badgePics = false
-    pcall(function()
-      local data = love.image.newImageData(128, 16)
-      for index = 1, 8 do
-        local c, glyph, ox = BADGE_COLORS[index], BADGE_DIGITS[index], (index - 1) * 16
-        for y = 0, 15 do
-          for x = 0, 15 do
-            local d = math.sqrt((x - 7.5) ^ 2 + (y - 7.5) ^ 2)
-            if d <= 7.6 then
-              local k = d > 6.4 and 0.45 or d > 5.2 and 1.18 or (0.92 - (x + y - 15) * 0.012)
-              data:setPixel(ox + x, y, min(1, c[1] * k), min(1, c[2] * k), min(1, c[3] * k), 1)
-            end
-          end
-        end
-        for row = 0, 4 do
-          for col = 0, 2 do
-            if glyph:sub(row * 3 + col + 1, row * 3 + col + 1) == "1" then
-              data:setPixel(ox + 7 + col, 6 + row, 0.10, 0.11, 0.14, 1)
-              data:setPixel(ox + 6 + col, 5 + row, 1, 1, 1, 1)
-            end
-          end
-        end
+  -- Gym badges: the mod's own set of eight, in the style of the Trainer Badges
+  -- (a metal rim, a body in the gym type's colour, a light and a dark facet).
+  -- Each is drawn here from outlines on a 100-unit square: two peaks, a shell,
+  -- a bolt, a trefoil, a crescent, a diamond with an eye, a volcano and a cone.
+  -- None of them is one of the game's badges, and nothing is read from the
+  -- art imported from the player's ROM.
+  local GYM_BADGES = {
+    { name = "Rock", color = { 0.60, 0.64, 0.69 }, shine = { 30, 44, 5 },
+      shape = { { 12, 80, 33, 30, 49, 50, 66, 16, 90, 80 } },
+      light = { { 33, 30, 41, 80, 12, 80 }, { 66, 16, 71, 80, 49, 80, 49, 50 } },
+      dark = { { 33, 30, 49, 50, 49, 80, 41, 80 }, { 66, 16, 90, 80, 71, 80 } } },
+    { name = "Water", color = { 0.24, 0.61, 0.91 }, shine = { 34, 34, 7 },
+      shape = { { 50, 88, 12, 46, 15.4, 38.4, 20.3, 31.7, 26.5, 26.1, 33.8, 21.9, 41.7, 19.4, 50, 18.5, 58.3, 19.4, 66.2, 21.9, 73.5, 26.1, 79.7, 31.7, 84.6, 38.4, 88, 46 } },
+      light = { { 50, 88, 12, 46, 15.7, 37.9, 21.2, 30.8, 28, 25, 36, 21 } },
+      dark = { { 50, 88, 64, 21, 72, 25, 78.8, 30.8, 84.3, 37.9, 88, 46 } } },
+    { name = "Electric", color = { 0.96, 0.80, 0.12 }, shine = { 46, 22, 5 },
+      shape = { { 60, 5, 20, 55, 43, 55, 34, 95, 80, 42, 56, 42 } },
+      light = { { 60, 5, 20, 55, 43, 55, 52, 30 } },
+      dark = { { 34, 95, 80, 42, 56, 42, 43, 55 } } },
+    { name = "Grass", color = { 0.25, 0.68, 0.29 }, shine = { 40, 20, 6 },
+      shape = { { 71, 29, 70.1, 34.9, 67.7, 40.4, 63.8, 44.9, 58.7, 48.1, 53, 49.8, 47, 49.8, 41.3, 48.1, 36.2, 44.9, 32.3, 40.4, 29.9, 34.9, 29, 29, 29.9, 23.1, 32.3, 17.6, 36.2, 13.1, 41.3, 9.9, 47, 8.2, 53, 8.2, 58.7, 9.9, 63.8, 13.1, 67.7, 17.6, 70.1, 23.1 }, { 50, 64, 49.1, 69.9, 46.7, 75.4, 42.8, 79.9, 37.7, 83.1, 32, 84.8, 26, 84.8, 20.3, 83.1, 15.2, 79.9, 11.3, 75.4, 8.9, 69.9, 8, 64, 8.9, 58.1, 11.3, 52.6, 15.2, 48.1, 20.3, 44.9, 26, 43.2, 32, 43.2, 37.7, 44.9, 42.8, 48.1, 46.7, 52.6, 49.1, 58.1 }, { 92, 64, 91.1, 69.9, 88.7, 75.4, 84.8, 79.9, 79.7, 83.1, 74, 84.8, 68, 84.8, 62.3, 83.1, 57.2, 79.9, 53.3, 75.4, 50.9, 69.9, 50, 64, 50.9, 58.1, 53.3, 52.6, 57.2, 48.1, 62.3, 44.9, 68, 43.2, 74, 43.2, 79.7, 44.9, 84.8, 48.1, 88.7, 52.6, 91.1, 58.1 }, { 50, 30, 30, 64, 70, 64 } },
+      light = { { 50, 8, 45.3, 8.5, 40.9, 10.1, 36.9, 12.5, 33.6, 15.9, 31.1, 19.8, 29.5, 24.2, 29, 28.9, 29.5, 33.6, 31, 38, 50, 50 }, { 29, 43, 24.5, 43.5, 20.2, 45, 16.3, 47.4, 13.1, 50.6, 10.6, 54.4, 8.9, 58.6, 8.3, 63.1, 8.6, 67.6, 9.8, 72, 12, 76, 50, 50 } },
+      dark = { { 71, 43, 75.5, 43.5, 79.8, 45, 83.7, 47.4, 86.9, 50.6, 89.4, 54.4, 91.1, 58.6, 91.7, 63.1, 91.4, 67.6, 90.2, 72, 88, 76, 50, 50 }, { 50, 85, 54, 86.8, 58.3, 87.7, 62.7, 87.7, 67, 86.8, 71, 85, 50, 50 } } },
+    { name = "Poison", color = { 0.60, 0.31, 0.85 }, shine = { 30, 24, 6 },
+      shape = { { 66, 8, 56.9, 5.8, 47.6, 5.6, 38.5, 7.3, 29.9, 11, 22.3, 16.3, 15.9, 23.2, 11.2, 31.2, 8.2, 40, 7.2, 49.3, 8.2, 58.6, 11.1, 67.4, 15.8, 75.5, 22.1, 82.4, 29.6, 87.8, 38.2, 91.5, 47.4, 93.3, 56.7, 93.1, 65.7, 91, 74.2, 87, 81.6, 81.3, 87.6, 74.2, 92, 66, 86.4, 69.8, 80.2, 72.3, 73.5, 73.5, 66.8, 73.4, 60.2, 71.9, 54.1, 69, 48.6, 65, 44.2, 60, 40.8, 54.1, 38.7, 47.7, 37.9, 41, 38.5, 34.3, 40.5, 27.8, 43.7, 21.9, 48.1, 16.8, 53.4, 12.6, 59.5, 9.7 } },
+      light = { { 66, 8, 56.7, 6, 47.2, 5.9, 37.9, 8, 29.3, 12, 21.7, 17.7, 15.6, 25, 11.1, 33.4, 8.5, 42.5, 8, 52, 27, 50, 25.6, 43.2, 25.7, 36.3, 27.2, 29.5, 30.2, 23.2, 34.3, 17.7, 39.5, 13.1, 45.6, 9.8, 52.2, 7.7, 59.1, 7.1 } },
+      dark = { { 92, 66, 88.1, 74.7, 82.4, 82.3, 75.2, 88.5, 66.8, 93, 57.7, 95.6, 48.2, 96.2, 38.8, 94.7, 29.9, 91.3, 22, 86, 36, 72, 40.6, 76.9, 46.2, 80.7, 52.3, 83.4, 58.9, 84.7, 65.7, 84.7, 72.3, 83.3, 78.4, 80.6, 83.9, 76.7, 88.5, 71.8 } } },
+    { name = "Psychic", color = { 0.91, 0.33, 0.61 }, shine = { 32, 30, 5 },
+      shape = { { 50, 6, 92, 50, 50, 94, 8, 50 } },
+      light = { { 64, 50, 63.4, 53.9, 61.8, 57.6, 59.2, 60.6, 55.8, 62.7, 52, 63.9, 48, 63.9, 44.2, 62.7, 40.8, 60.6, 38.2, 57.6, 36.6, 53.9, 36, 50, 36.6, 46.1, 38.2, 42.4, 40.8, 39.4, 44.2, 37.3, 48, 36.1, 52, 36.1, 55.8, 37.3, 59.2, 39.4, 61.8, 42.4, 63.4, 46.1 }, { 50, 6, 8, 50, 36, 50, 36.4, 46.9, 37.4, 43.9, 39.1, 41.3, 41.3, 39.1, 43.9, 37.4, 46.9, 36.4, 50, 36 } },
+      dark = { { 50, 94, 92, 50, 64, 50, 63.6, 53.1, 62.6, 56.1, 60.9, 58.7, 58.7, 60.9, 56.1, 62.6, 53.1, 63.6, 50, 64 } } },
+    { name = "Fire", color = { 0.93, 0.35, 0.16 }, shine = { 26, 38, 5 },
+      shape = { { 29, 20, 44, 34, 56, 34, 71, 20, 93, 84, 7, 84 } },
+      light = { { 29, 20, 44, 34, 38, 84, 7, 84 }, { 47, 34, 50, 62, 53, 34 } },
+      dark = { { 71, 20, 93, 84, 62, 84, 56, 34 } } },
+    { name = "Ground", color = { 0.79, 0.54, 0.20 }, shine = { 28, 26, 6 },
+      shape = { { 8, 18, 92, 18, 50, 94 } },
+      light = { { 8, 18, 92, 18, 79, 42, 21, 42 } },
+      dark = { { 34.5, 66, 65.5, 66, 50, 94 } } },
+  }
+  local badgeSheets = {}
+  local function fillParts(parts)
+    for _, pts in ipairs(parts) do
+      local ok, tris = pcall(love.math.triangulate, pts)
+      if ok then for _, tri in ipairs(tris) do G.polygon("fill", tri) end end
+    end
+  end
+  -- The eight badges painted side by side at `size` pixels each, kept per size:
+  -- { image, quads[1..8], size }. Drawn with premultiplied alpha.
+  local function badgeArt(size)
+    size = max(8, min(96, floor(tonumber(size) or 16)))
+    if badgeSheets[size] ~= nil then return badgeSheets[size] or nil end
+    badgeSheets[size] = false
+    local okCanvas, canvas = pcall(G.newCanvas, size * 8, size, { msaa = 4 })
+    if not okCanvas then okCanvas, canvas = pcall(G.newCanvas, size * 8, size) end
+    if not okCanvas then return nil end
+    G.push("all")
+    local okDraw = pcall(function()
+      G.setCanvas(canvas); G.origin(); G.setScissor(); G.setShader(); G.setBlendMode("alpha"); G.clear(0, 0, 0, 0)
+      local k = size / 108
+      G.setLineJoin("bevel"); G.setLineWidth(7)
+      for index, badge in ipairs(GYM_BADGES) do
+        G.push(); G.translate((index - 1) * size + 4 * k, 4 * k); G.scale(k, k)
+        G.setColor(0.85, 0.88, 0.92, 1)
+        for _, pts in ipairs(badge.shape) do G.polygon("line", pts) end
+        G.setColor(badge.color[1], badge.color[2], badge.color[3], 1); fillParts(badge.shape)
+        G.setColor(1, 1, 1, 0.28); fillParts(badge.light)
+        G.setColor(0, 0, 0, 0.28); fillParts(badge.dark)
+        G.setColor(1, 1, 1, 0.6); G.ellipse("fill", badge.shine[1], badge.shine[2], badge.shine[3], badge.shine[3] * 0.5)
+        G.pop()
       end
-      local image = G.newImage(data)
-      image:setFilter("nearest", "nearest")
-      local pics = {}
-      for index = 1, 8 do
-        pics[index] = { image = image, w = 16, h = 16, quads = { [0] = G.newQuad((index - 1) * 16, 0, 16, 16, 128, 16) } }
-      end
-      badgePics = pics
     end)
-    return badgePics or nil
+    G.pop()
+    if not okDraw then return nil end
+    local quads = {}
+    for index = 1, 8 do quads[index] = G.newQuad((index - 1) * size, 0, size, size, size * 8, size) end
+    badgeSheets[size] = { image = canvas, quads = quads, size = size }
+    return badgeSheets[size]
   end
   local function trainerModel()
     local h, s = host(), game.session
@@ -756,7 +792,7 @@ return function(mod)
       end
       Card._session = keep
     end
-    model.badgePics = badgeSheet()
+    model.badgeArt = badgeArt
     local dex = s.dex
     if dex and h.Dex and h.Dex.countCaught then
       local kanto = tonumber(h.Dex.KANTO_MAX) or 151

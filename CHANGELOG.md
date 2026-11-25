@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.16.0
+
+- **Trainer panel: eight gym badges of the mod's own.** The numbered medals give way to a set drawn in the style of the Trainer Badges, one per gym, themed on its type: two peaks (rock), a shell (water), a bolt (electric), a trefoil (grass), a crescent (poison), a diamond with an eye (psychic), a volcano (fire) and a cone in layers (ground). They are drawn by the mod's code at the size the panel needs; none is one of the game's badges and nothing is read from your ROM.
+
 ## 2.15.0
 
 - Every Lens panel carries the Lens Badge on its tab in Trainer Desk (0.8.0 or newer; older versions just show the title).

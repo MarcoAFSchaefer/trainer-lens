@@ -792,19 +792,18 @@ return function(env)
       local cx, cy = x + 12 + (index - 0.5) * slot, y + 40
       local r = min(16, slot / 2 - 3)
       local got = model.badges[index]
-      local pic = model.badgePics and model.badgePics[index]
-      if pic then
-        -- the badge itself, as the trainer card draws it; faded until it is won
+      local art = model.badgeArt and model.badgeArt(floor(r * 2))
+      if art and art.quads[index] then
+        -- the mod's own badge for this gym; faded, in a ring, until it is won
         if not got then
           color(C.line)
           G.circle("line", cx, cy, r)
         end
-        local size = r * 2
-        if got then sprite(pic, cx - r, cy - r, size) else
-          G.setColor(0.35, 0.38, 0.42, 0.35)
-          local scale = max(1, floor(size / 16))
-          G.draw(pic.image, pic.quads[0], floor(cx - 8 * scale), floor(cy - 8 * scale), 0, scale, scale)
-        end
+        local mode, alphaMode = G.getBlendMode()
+        G.setBlendMode("alpha", "premultiplied")
+        if got then G.setColor(1, 1, 1, 1) else G.setColor(0.12, 0.13, 0.15, 0.35) end
+        G.draw(art.image, art.quads[index], floor(cx - art.size / 2), floor(cy - art.size / 2))
+        G.setBlendMode(mode, alphaMode)
       else
         color(got and C.gold or C.line)
         G.circle(got and "fill" or "line", cx, cy, r)
