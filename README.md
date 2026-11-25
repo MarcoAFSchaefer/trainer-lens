@@ -2,6 +2,10 @@
 
 Information panels for Pokémon FireRed/LeafGreen on Gen1Recomp (mod API 3). With Trainer Desk installed, every panel sits in a dock around the game and redraws itself for the room it has; without it, up to five panels open as desktop windows.
 
+![Trainer Lens in a wild battle: the opponent's sheet with stats and IVs, and the Dashboard](docs/images/battle.png)
+
+![Trainer Lens while exploring: area map, tools, moves, the area's Pokémon and the Dashboard](docs/images/field.png)
+
 Panels read the game. The only ones that change anything do so when you click, through the game's own functions: the Tools panel uses field moves and key items (and Auto Repel uses a Repel when one wears off), the Party panel swaps two members and gives or takes held items, and the PC panel moves Pokémon between box slots and sorts the boxes you have not locked.
 
 ## Panels
@@ -78,6 +82,10 @@ Each language is a file in `trainer_lens/lang/` (`en.lua`, `es.lua`, `pt.lua`, `
 ## History
 
 Until version 2.8.0 this mod was called PokePanels (id `poke_panels`).
+
+## What it changes in the game
+
+[DIFFERENCES.md](DIFFERENCES.md) lists everything this mod does differently from the unmodded game.
 
 ## License
 

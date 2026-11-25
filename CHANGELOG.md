@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.3
+
+- Moves panel: the effectiveness mark against the opponent was wrong on the current game version. A neutral move showed a red **x0.01**, and super effective moves showed as weak. It now shows x2, x0.5 and so on, and nothing for a neutral move.
+
 ## 2.14.2
 
 - Trainer panel: the badges are now the mod's own medals (a disc in the colour of the gym's type, with the number of the badge) instead of the pictures from the game's trainer card. The mod no longer reads any picture imported from your ROM, and passes the modkit's `validate --strict` and `lint`.

@@ -1228,8 +1228,11 @@ return function(mod)
         if type(text) == "string" and text ~= "---" then move.description = clean(text) end
         if foeTypes and power > 0 and h.Types.effectiveness then
           local k = tonumber(try(h.Types.effectiveness, row.type, foeTypes[1], foeTypes[2]))
-          if k and k ~= 100 then
-            move.effect = { label = k == 0 and "x0" or ("x" .. (k / 100)), good = k > 100, bad = k < 100 and k > 0 }
+          -- the game gives the factor itself (1 = neutral, 2, 0.5, 0.25, 0);
+          -- older builds gave it times 100
+          if k and k > 8 then k = k / 100 end
+          if k and k ~= 1 then
+            move.effect = { label = "x" .. k, good = k > 1, bad = k < 1 and k > 0 }
           end
         end
         model.moves[slot] = move
