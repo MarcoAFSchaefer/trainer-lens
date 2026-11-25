@@ -694,22 +694,40 @@ return function(mod)
   ---------------------------------------------------------------------------
   local BADGE_NAMES = { "Boulder", "Cascade", "Thunder", "Rainbow", "Soul", "Marsh", "Volcano", "Earth" }
   local STAT_ORDER = { 5, 7, 8, 9, 11, 12, 13, 14, 15 }
-  -- The badge pictures of the game's own trainer card: one 128x16 sheet.
+  -- Badge pictures: the mod's own medals, drawn here (a disc in the colour of
+  -- the gym's type with the badge's number). Nothing is read from the game's
+  -- imported art, so the mod ships and references no ROM-derived picture.
+  local BADGE_COLORS = { { .62, .60, .56 }, { .27, .56, .92 }, { .96, .80, .20 }, { .36, .72, .36 },
+    { .74, .42, .82 }, { .95, .52, .62 }, { .93, .42, .20 }, { .72, .56, .30 } }
+  local BADGE_DIGITS = { "010110010010111", "111001111100111", "111001111001111", "101101111001001",
+    "111100111001111", "111100111101111", "111001010010010", "111101111101111" }
   local badgePics
   local function badgeSheet()
     if badgePics ~= nil then return badgePics or nil end
     badgePics = false
     pcall(function()
-      local CacheFs = require("src.import.CacheFs")
-      -- the same two places the game's own trainer card reads them from
-      -- (src/ui/game3/trainer_card.lua): the version's cache root, then its gba tree
-      local raw
-      for _, path in ipairs({ "trainer_card/badges.rgba", "data/generated/gba/trainer_card/badges.rgba" }) do
-        raw = raw or (CacheFs.readActive and CacheFs.readActive(path)) or (CacheFs.read and CacheFs.read(path))
-        if raw and #raw < 128 * 16 * 4 then raw = nil end
+      local data = love.image.newImageData(128, 16)
+      for index = 1, 8 do
+        local c, glyph, ox = BADGE_COLORS[index], BADGE_DIGITS[index], (index - 1) * 16
+        for y = 0, 15 do
+          for x = 0, 15 do
+            local d = math.sqrt((x - 7.5) ^ 2 + (y - 7.5) ^ 2)
+            if d <= 7.6 then
+              local k = d > 6.4 and 0.45 or d > 5.2 and 1.18 or (0.92 - (x + y - 15) * 0.012)
+              data:setPixel(ox + x, y, min(1, c[1] * k), min(1, c[2] * k), min(1, c[3] * k), 1)
+            end
+          end
+        end
+        for row = 0, 4 do
+          for col = 0, 2 do
+            if glyph:sub(row * 3 + col + 1, row * 3 + col + 1) == "1" then
+              data:setPixel(ox + 7 + col, 6 + row, 0.10, 0.11, 0.14, 1)
+              data:setPixel(ox + 6 + col, 5 + row, 1, 1, 1, 1)
+            end
+          end
+        end
       end
-      if not raw then return end
-      local image = G.newImage(love.image.newImageData(128, 16, "rgba8", raw))
+      local image = G.newImage(data)
       image:setFilter("nearest", "nearest")
       local pics = {}
       for index = 1, 8 do

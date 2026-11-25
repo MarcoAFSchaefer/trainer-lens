@@ -64,7 +64,7 @@ Item balls are objects with graphics id 92 on the current map; hidden items are 
 
 ## Trainer
 
-Badges come from `src.ui.game3.trainer_card.isBadgeUnlocked`, which knows every way a save may record them (its `_session` is set for the call and restored); their pictures from the trainer card's own sheet (`trainer_card/badges.rgba`). Pokédex counts use `dex.countSeen` and `countCaught` (Kanto, then National when caught). Counters come from `session.gameStats` (steps, battles, captures, fishing, eggs, evolutions, Center heals), shown only when non-zero.
+Badges come from `src.ui.game3.trainer_card.isBadgeUnlocked`, which knows every way a save may record them (its `_session` is set for the call and restored); their pictures are the mod's own medals, drawn in `main.lua` (a disc in the colour of the gym's type with the badge's number); the game's badge art is not read. Pokédex counts use `dex.countSeen` and `countCaught` (Kanto, then National when caught). Counters come from `session.gameStats` (steps, battles, captures, fishing, eggs, evolutions, Center heals), shown only when non-zero.
 
 ## Progress
 

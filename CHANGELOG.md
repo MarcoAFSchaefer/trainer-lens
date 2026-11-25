@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.14.2
+
+- Trainer panel: the badges are now the mod's own medals (a disc in the colour of the gym's type, with the number of the badge) instead of the pictures from the game's trainer card. The mod no longer reads any picture imported from your ROM, and passes the modkit's `validate --strict` and `lint`.
+- New `DIFFERENCES.md`: what the mod changes from the unmodded game.
+
 ## 2.14.1
 
 - Trainer panel: the badge pictures show again (2.10.0 had dropped the second place the game keeps them).
