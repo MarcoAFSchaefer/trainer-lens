@@ -6,6 +6,10 @@ Information panels for Pokémon FireRed/LeafGreen on Gen1Recomp (mod API 3). Wit
 
 ![Trainer Lens while exploring: area map, tools, moves, the area's Pokémon and the Dashboard](docs/images/field.png)
 
+| My Pokémon | Trainer | PC and Pokédex |
+| --- | --- | --- |
+| ![The sheet of your Pokémon with stats, IVs and EVs](docs/images/my-pokemon.jpg) | ![Trainer panel with the badge medals](docs/images/trainer.jpg) | ![PC box and Pokédex panels](docs/images/pc-pokedex.jpg) |
+
 Panels read the game. The only ones that change anything do so when you click, through the game's own functions: the Tools panel uses field moves and key items (and Auto Repel uses a Repel when one wears off), the Party panel swaps two members and gives or takes held items, and the PC panel moves Pokémon between box slots and sorts the boxes you have not locked.
 
 ## Panels
