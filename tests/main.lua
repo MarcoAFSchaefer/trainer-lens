@@ -326,7 +326,7 @@ end
   local function tabRect(id)
     local shown = function(other) return stateOf(other) == "docked" end
     local geo = Layout.geometry(Layout.decode(dock.cache_["layout/v1"]), { x = 0, y = 0, w = WW, h = WH }, { tab = 22, splitter = 5, minDock = 120, tabMax = 170 }, shown,
-      function(other) return font12:getWidth(titleOf(other) or "") + 16 + 32 end)
+      function(other) return font12:getWidth(titleOf(other) or "") + 16 + 32 + (other:find("^trainer_lens%.") and 17 or 0) end)   -- Lens panels carry their badge
     for _, side in ipairs(Layout.SIDES) do
       for _, view in ipairs(geo.docks[side] and geo.docks[side].groups or {}) do
         for _, tab in ipairs(view.tabs) do if tab.id == id then return tab.rect end end

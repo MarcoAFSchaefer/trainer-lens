@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.15.0
+
+- Every Lens panel carries the Lens Badge on its tab in Trainer Desk (0.8.0 or newer; older versions just show the title).
+- The mod is now part of the **Trainer Badges**: a badge, a banner and the family case in the README.
+
 ## 2.14.3
 
 - Moves panel: the effectiveness mark against the opponent was wrong on the current game version. A neutral move showed a red **x0.01**, and super effective moves showed as weak. It now shows x2, x0.5 and so on, and nothing for a neutral move.
