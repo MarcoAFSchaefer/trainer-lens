@@ -200,6 +200,7 @@ local function serialize()
 end
 
 local mainSeen = {}       -- main window id -> time first seen
+local resettle = -math.huge   -- when another save's places arrived: windows are put there once more
 local wasInside, lastSave, lastSent = false, 0, serialize()
 while true do
   -- a newer load of the mod has started its own keeper
@@ -209,6 +210,14 @@ while true do
     if message == false then return end
     if type(message) == "table" then
       for key in pairs(config) do if message[key] ~= nil then config[key] = message[key] == true end end
+      if type(message.layout) == "string" then
+        -- another save was opened: its own places for the windows
+        layout = {}
+        for key, x, y, w, h, flag in message.layout:gmatch("([%w_%.]+)=(-?%d+),(-?%d+),(%d+),(%d+),(%d)") do
+          layout[key] = { x = tonumber(x), y = tonumber(y), w = tonumber(w), h = tonumber(h), max = flag == "1" }
+        end
+        resettle, lastSent = love.timer.getTime(), serialize()
+      end
       if type(message.ports) == "string" then
         panelPort = {}
         for panel, port in message.ports:gmatch("([%w_%.]+):(%d+)") do panelPort[tonumber(port)] = panel end
@@ -226,7 +235,7 @@ while true do
     end
     -- put windows back where they were, and hold them there while they settle
     for _, entry in ipairs(all) do
-      entry.settling = not entry.since or clock - entry.since < SETTLE
+      entry.settling = not entry.since or clock - entry.since < SETTLE or clock - resettle < SETTLE
       local slot = entry.key and layout[entry.key]
       if config.remember and slot and entry.settling and (not entry.main or config.main)
           and C.IsIconic(entry.hwnd) == 0 and framed(entry.hwnd) then

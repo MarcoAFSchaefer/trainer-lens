@@ -2,6 +2,7 @@
 
 ## 2.17.0
 
+- Where the windows sit (the game window and the panels taken out of it) is remembered per save as well: opening a save puts them where that save left them, so two copies of the game on two saves no longer pull each other's windows around. A save with no places of its own keeps the windows where they are.
 - The encounter counter, the box locks and Auto Repel now belong to the save that is open, kept in the game's per-save store for mods. They used to sit in one file shared by every save, and by every copy of the game that was open. A save with nothing of its own yet starts from what that file holds. The layout of the windows is still shared.
 
 ## 2.16.0

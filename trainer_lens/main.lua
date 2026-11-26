@@ -2405,9 +2405,20 @@ return function(mod)
       local thread = love.thread.newThread(source)
       local saved = mod.cache and mod.cache.read and mod.cache:read("windows/layout2") or ""
       thread:start(control, results, saved, epoch, owner)
-      keeper = { thread = thread, control = control, results = results }
+      keeper = { thread = thread, control = control, results = results, text = saved }
     end)
     if not ok then mod.log:warn("window keeper unavailable: %s", tostring(err)) end
+  end
+  -- Another save was opened: its windows go where that save left them; a save
+  -- with no places of its own keeps them where they are and remembers that.
+  PerSave.listeners[#PerSave.listeners + 1] = function()
+    if not keeper then return end
+    local own = PerSave.values["windows/layout2"]
+    if type(own) == "string" then
+      if own ~= keeper.text then keeper.text = own; keeper.control:push({ layout = own }) end
+    elseif keeper.text and keeper.text ~= "" then
+      perSaveWrite("windows/layout2", keeper.text, true)
+    end
   end
   local function serviceKeeper()
     if not keeper then return end
@@ -2434,8 +2445,9 @@ return function(mod)
     while message ~= nil do
       if type(message) == "string" and message:sub(1, 1) == "!" then
         if not keeper.warned then keeper.warned = true; mod.log:warn("window keeper: %s", message:sub(2)) end
-      elseif type(message) == "string" and mod.cache and mod.cache.write then
-        mod.cache:write("windows/layout2", message)
+      elseif type(message) == "string" then
+        keeper.text = message
+        perSaveWrite("windows/layout2", message, true)
       end
       message = keeper.results:pop()
     end

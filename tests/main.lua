@@ -415,6 +415,45 @@ end
   check(dock3.exports.dock.theme().colors.dock[1] > 0.9, "and is applied once its mod registers it")
   registry.trainer_desk = dock
   api.setTheme("dark")
+  do
+    -- the arrangement and the theme belong to the save that is open
+    local stores = {}
+    dock.storage = {
+      context = function(_, g) return { playthroughId = g.save.meta.playthroughId } end,
+      read = function(_, g, key) local t = stores[g.save.meta.playthroughId] return t and t[key] or nil end,
+      write = function(_, g, key, value)
+        local id, copy = g.save.meta.playthroughId, {}
+        for k, v in pairs(value) do copy[k] = v end
+        stores[id] = stores[id] or {}
+        stores[id][key] = copy
+        return true
+      end,
+    }
+    local keepSave, keepPhase, keepSession = game.save, game.phase, game.session
+    local opened = 0
+    local function open(id)
+      if opened > 0 then love.timer.sleep(5.1) end   -- which save is open is asked every few seconds at most
+      opened = opened + 1
+      game.save, game.phase = { version = "firered", meta = { playthroughId = id } }, "field"
+      game.session = setmetatable({}, { __index = keepSession })
+      dock.hooks_["core.update"](function() end, game, 1 / 60)
+    end
+    local sharedTheme, sharedLayout = dock.cache_.theme, dock.cache_["layout/v1"]
+    open("save-a")
+    check(api.theme().colors.dock[1] < 0.5, "per save: a save with nothing of its own starts from the shared theme")
+    api.setTheme("light")
+    check(stores["save-a"] and stores["save-a"].state.theme == "light" and dock.cache_.theme == sharedTheme, "per save: the theme goes to the save, the shared one stays")
+    local before = #api.panels()
+    open("save-b")
+    check(api.theme().colors.dock[1] < 0.5 and #api.panels() == before, "per save: another save has the shared theme again, and every panel is still there")
+    open("save-a")
+    check(api.theme().colors.dock[1] > 0.9, "per save: back on the first save, its own theme")
+    api.setTheme("dark")
+    check(dock.cache_["layout/v1"] == sharedLayout, "per save: the shared arrangement was not touched")
+    game.save, game.phase, game.session = keepSave, keepPhase, keepSession
+    -- the checks that follow read the shared cache: from here the save's store is that cache
+    dock.storage.write = function(_, _, _, value) for k, v in pairs(value) do dock.cache_[k] = v end return true end
+  end
   -- 0.3.0: more tabs than a bar holds --------------------------------------------
   do
     local L = Layout.new()
