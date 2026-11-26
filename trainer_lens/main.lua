@@ -549,9 +549,53 @@ return function(mod)
     local value = ok and type(Sem) == "table" and Sem.getVar and try(Sem.getVar, game.session, "repelSteps")
     return tonumber(value) or tonumber(game.session.repelSteps) or 0
   end
+  -- What belongs to one save. The game keeps a store for mods per save slot
+  -- (mod.storage); the shared cache (mod.cache) is the same for every save and
+  -- for every copy of the game that is open. A save that has nothing of its own
+  -- yet starts from what the shared cache holds, and from then on keeps its own.
+  local PerSave = { values = nil, id = nil, checked = -math.huge, listeners = {}, dirty = false, wrote = 0 }
+  local function perSaveFlush()
+    if not (PerSave.dirty and PerSave.values) then return end
+    PerSave.dirty, PerSave.wrote = false, love.timer.getTime()
+    pcall(mod.storage.write, mod.storage, PerSave.game, "state", PerSave.values)
+  end
+  -- Which save is open: asked when the session changes, at most every few seconds.
+  local function perSaveBind(g)
+    if not (type(g) == "table" and g.session and g.save and g.phase == "field"
+        and type(mod.storage) == "table" and mod.storage.context and mod.storage.read and mod.storage.write) then return end
+    local now = love.timer.getTime()
+    if PerSave.dirty and now - PerSave.wrote >= 2 then perSaveFlush() end
+    if PerSave.session == g.session or now - PerSave.checked < 5 then return end
+    PerSave.session, PerSave.checked = g.session, now
+    local ok, context = pcall(mod.storage.context, mod.storage, g)
+    local id = ok and type(context) == "table" and context.playthroughId or nil
+    if id and id ~= PerSave.id then
+      perSaveFlush()
+      local okRead, data = pcall(mod.storage.read, mod.storage, g, "state")
+      PerSave.id, PerSave.game, PerSave.values = id, g, okRead and type(data) == "table" and data or {}
+      for _, listener in ipairs(PerSave.listeners) do pcall(listener) end
+    end
+  end
+  local function perSaveRead(key)
+    local own = PerSave.values and PerSave.values[key]
+    if type(own) == "string" then return own end
+    return mod.cache and mod.cache.read and mod.cache:read(key) or nil
+  end
+  -- `soon`: written at once (a setting); otherwise within two seconds (a counter).
+  local function perSaveWrite(key, text, soon)
+    if not PerSave.values then
+      -- no save open yet: the shared cache, as it always was
+      if mod.cache and mod.cache.write then mod.cache:write(key, text) end
+      return
+    end
+    if PerSave.values[key] == text then return end
+    PerSave.values[key], PerSave.dirty = text, true
+    if soon then perSaveFlush() end
+  end
   local toolState = { hits = {}, flash = nil }
   local AUTO_KEY = "autorepel"
-  toolState.autoRepel = mod.cache and mod.cache.read and mod.cache:read(AUTO_KEY) == "1" or false
+  toolState.autoRepel = perSaveRead(AUTO_KEY) == "1"
+  PerSave.listeners[#PerSave.listeners + 1] = function() toolState.autoRepel = perSaveRead(AUTO_KEY) == "1" end
   local function toolHost()
     local h = host()
     if h.toolsReady == nil then
@@ -672,7 +716,7 @@ return function(mod)
         local h, tool = toolHost(), hit.tool
         if tool.toggle == "autorepel" then
           toolState.autoRepel = not toolState.autoRepel
-          if mod.cache and mod.cache.write then mod.cache:write(AUTO_KEY, toolState.autoRepel and "1" or "0") end
+          perSaveWrite(AUTO_KEY, toolState.autoRepel and "1" or "0", true)
           return
         end
         local ok, text
@@ -1314,7 +1358,7 @@ return function(mod)
   local function counterLoad()
     if counter then return counter end
     counter = { total = 0, since = 0, shinies = 0, species = {}, hits = {} }
-    local saved = mod.cache and mod.cache.read and mod.cache:read(COUNTER_KEY)
+    local saved = perSaveRead(COUNTER_KEY)
     for key, value in tostring(saved or ""):gmatch("([%w]+)=(%d+)") do
       local species = tonumber(key:match("^s(%d+)$"))
       if species then counter.species[species] = tonumber(value)
@@ -1325,8 +1369,10 @@ return function(mod)
   local function counterSave()
     local parts = { "total=" .. counter.total, "since=" .. counter.since, "shinies=" .. counter.shinies }
     for species, n in pairs(counter.species) do parts[#parts + 1] = "s" .. species .. "=" .. n end
-    if mod.cache and mod.cache.write then mod.cache:write(COUNTER_KEY, table.concat(parts, "\n")) end
+    perSaveWrite(COUNTER_KEY, table.concat(parts, "\n"))
   end
+  -- another save was opened: its own count
+  PerSave.listeners[#PerSave.listeners + 1] = function() counter = nil end
   -- Called every frame: a wild battle that has just begun is one more encounter.
   local function counterWatch()
     if not inGame() then return end
@@ -1550,7 +1596,7 @@ return function(mod)
   local function lockSet()
     if not locks then
       locks = {}
-      local saved = mod.cache and mod.cache.read and mod.cache:read(LOCKS_KEY) or ""
+      local saved = perSaveRead(LOCKS_KEY) or ""
       for line in tostring(saved):gmatch("[^\n]+") do
         local key, list = line:match("^(.-)=(.*)$")
         if key then
@@ -1572,8 +1618,9 @@ return function(mod)
       if #list > 0 then lines[#lines + 1] = key .. "=" .. table.concat(list, ",") end
     end
     table.sort(lines)
-    if mod.cache and mod.cache.write then mod.cache:write(LOCKS_KEY, table.concat(lines, "\n")) end
+    perSaveWrite(LOCKS_KEY, table.concat(lines, "\n"), true)
   end
+  PerSave.listeners[#PerSave.listeners + 1] = function() locks = nil end
 
   -- The orders Sort offers. Eggs always go last; ties keep their old order.
   local SORTS = { "dex_all", "dex_simple", "species_level", "level_up", "level_down", "compact" }
@@ -2398,6 +2445,7 @@ return function(mod)
 
   local failed
   mod.hooks:wrap("core.update", function(next, updateGame, dt)
+    pcall(perSaveBind, updateGame)
     if not failed then
       pcall(counterWatch)
       pcall(noticeWatch)

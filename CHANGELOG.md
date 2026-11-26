@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.17.0
+
+- The encounter counter, the box locks and Auto Repel now belong to the save that is open, kept in the game's per-save store for mods. They used to sit in one file shared by every save, and by every copy of the game that was open. A save with nothing of its own yet starts from what that file holds. The layout of the windows is still shared.
+
 ## 2.16.0
 
 - **Trainer panel: eight gym badges of the mod's own.** The numbered medals give way to a set drawn in the style of the Trainer Badges, one per gym, themed on its type: two peaks (rock), a shell (water), a bolt (electric), a trefoil (grass), a crescent (poison), a diamond with an eye (psychic), a volcano (fire) and a cone in layers (ground). They are drawn by the mod's code at the size the panel needs; none is one of the game's badges and nothing is read from your ROM.
