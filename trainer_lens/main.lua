@@ -1357,11 +1357,12 @@ return function(mod)
   local counter
   local function counterLoad()
     if counter then return counter end
-    counter = { total = 0, since = 0, shinies = 0, species = {}, hits = {} }
+    counter = { total = 0, since = 0, shinies = 0, species = {}, shinyBy = {}, hits = {} }
     local saved = perSaveRead(COUNTER_KEY)
     for key, value in tostring(saved or ""):gmatch("([%w]+)=(%d+)") do
-      local species = tonumber(key:match("^s(%d+)$"))
+      local species, shinyOf = tonumber(key:match("^s(%d+)$")), tonumber(key:match("^h(%d+)$"))
       if species then counter.species[species] = tonumber(value)
+      elseif shinyOf then counter.shinyBy[shinyOf] = tonumber(value)
       elseif key == "total" or key == "since" or key == "shinies" then counter[key] = tonumber(value) end
     end
     return counter
@@ -1369,6 +1370,7 @@ return function(mod)
   local function counterSave()
     local parts = { "total=" .. counter.total, "since=" .. counter.since, "shinies=" .. counter.shinies }
     for species, n in pairs(counter.species) do parts[#parts + 1] = "s" .. species .. "=" .. n end
+    for species, n in pairs(counter.shinyBy) do parts[#parts + 1] = "h" .. species .. "=" .. n end
     perSaveWrite(COUNTER_KEY, table.concat(parts, "\n"))
   end
   -- another save was opened: its own count
@@ -1389,6 +1391,7 @@ return function(mod)
     if species then c.species[species] = (c.species[species] or 0) + 1 end
     if try(h.P.isShiny, foe) == true then
       c.shinies, c.since = c.shinies + 1, 0
+      if species then c.shinyBy[species] = (c.shinyBy[species] or 0) + 1 end
       if c.notify then c.notify(T("N_SHINY"), nameCase(try(h.P.name, species) or ""), "gold") end
     end
     counterSave()
@@ -1399,17 +1402,23 @@ return function(mod)
     local luck = (1 - (8191 / 8192) ^ c.since) * 100
     model.luck, model.luckHigh = ("%.1f%%"):format(luck), luck >= 50
     for species, n in pairs(c.species) do
-      model.rows[#model.rows + 1] = { count = n, name = nameCase(try(h.P.name, species) or ("#" .. species)), pic = try(h.P.icon, species) }
+      model.rows[#model.rows + 1] = { count = n, name = nameCase(try(h.P.name, species) or ("#" .. species)), pic = try(h.P.icon, species),
+        shiny = c.shinyBy[species] }
       model.top = max(model.top, n)
     end
-    table.sort(model.rows, function(a, b) if a.count ~= b.count then return a.count > b.count end return a.name < b.name end)
+    -- species a shiny was met of come first, so the star is never off the end of the list
+    table.sort(model.rows, function(a, b)
+      if (a.shiny ~= nil) ~= (b.shiny ~= nil) then return a.shiny ~= nil end
+      if a.count ~= b.count then return a.count > b.count end
+      return a.name < b.name
+    end)
     return model
   end
   local function counterClick(x, y)
     local c = counterLoad()
     for _, hit in ipairs(c.hits) do
       if x >= hit.x and x < hit.x + hit.w and y >= hit.y and y < hit.y + hit.h and hit.action == "reset" then
-        c.total, c.since, c.shinies, c.species = 0, 0, 0, {}
+        c.total, c.since, c.shinies, c.species, c.shinyBy = 0, 0, 0, {}, {}
         counterSave()
       end
     end

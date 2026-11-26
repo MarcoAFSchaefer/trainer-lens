@@ -551,6 +551,15 @@ end
     end
     check(pp.cache_["counter/v1"] and pp.cache_["counter/v1"]:find("s16=1", 1, true) and tonumber(pp.cache_["counter/v1"]:match("total=(%d+)")) >= 3,
       "wild encounters are counted by species and remembered: " .. tostring(pp.cache_["counter/v1"]):gsub("\n", " "))
+    do
+      -- a shiny is marked on its species
+      local shinyFoe = mon(16, 20); shinyFoe.shiny = true
+      battle.active, battle.state = true, { wild = true, enemy = { mon = shinyFoe }, player = { mon = party[1] } }
+      frames(1); battle.active = false; frames(1)
+      check(pp.cache_["counter/v1"]:find("h16=1", 1, true) ~= nil, "the counter remembers which species the shiny was of")
+      api.show("trainer_lens.counter", "docked"); frames(2); click(1005, 646); frames(3); save("counter-shiny")
+      api.show("trainer_lens.counter", "closed"); frames(1)
+    end
     local M = game.data.maps
     M.MAP_ROUTE22.w, M.MAP_ROUTE22.h = 24, 12
     M.MAP_ROUTE22.midLayout = { width = 24, height = 12, pair = "T", cells = {}, overrides = {},

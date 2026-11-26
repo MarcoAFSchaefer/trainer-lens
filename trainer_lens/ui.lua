@@ -1160,7 +1160,15 @@ return function(env)
       local y = top + ((index - 1) % perColumn) * rowH
       sprite(row.pic, x + 2, y, 28)
       text(row.count, x + cw - 6, y + 7, C.text, 12, "right")
-      text(fit(row.name, cw - 46 - widthOf(row.count, 12), 12), x + 36, y + 7, C.text, 12)
+      -- a gold star for a species a shiny was met of, with how many when more than one
+      local mark = row.shiny and (row.shiny > 1 and 18 + widthOf(row.shiny, 11) or 16) or 0
+      local name = fit(row.name, cw - 46 - widthOf(row.count, 12) - mark, 12)
+      text(name, x + 36, y + 7, C.text, 12)
+      if row.shiny then
+        local sx = x + 36 + widthOf(name, 12) + 10
+        star(sx, y + 14, 6)
+        if row.shiny > 1 then text(row.shiny, sx + 9, y + 8, C.gold, 11) end
+      end
       color(C.line)
       G.rectangle("fill", x + 36, y + rowH - 4, cw - 42, 2)
       color(C.accent)
